@@ -1,0 +1,72 @@
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  border-radius: 100px;
+  max-width: 100%;
+}
+
+.user-pill--mini {
+  height: 24px;
+  padding: 0 6px;
+  background: rgba(255, 255, 255, 0.75);
+  max-width: 192px;
+}
+
+.user-pill--big {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.user-pill__identity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.user-pill__avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-pill__name {
+  color: var(--neutral-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 128px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.user-pill--mini .user-pill__name {
+  font-weight: 500;
+}
+
+.user-pill--big .user-pill__name {
+  font-weight: 600;
+  max-width: none;
+}
+
+.user-pill__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100px;
+  color: var(--bg);
+  flex-shrink: 0;
+}
+
+.user-pill--mini .user-pill__badge {
+  width: 20px;
+  height: 20px;
+}
+
+.user-pill--big .user-pill__badge {
+  width: 26px;
+  height: 26px;
+}

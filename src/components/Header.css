@@ -1,0 +1,64 @@
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(235, 249, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.88) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.app-header__logo {
+  width: 45px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.app-header__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--neutral-600);
+  letter-spacing: -0.02em;
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 100px;
+  background: rgba(246, 246, 246, 0.9);
+  color: var(--neutral-600);
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .app-header {
+    padding-inline: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+}
