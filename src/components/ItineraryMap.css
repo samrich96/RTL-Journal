@@ -6,18 +6,19 @@
 }
 
 .itinerary-map--dimmed {
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
+  filter: none;
 }
 
 .itinerary-map__canvas {
   width: 100%;
   height: 100%;
-  background: #dfe4e8;
+  background: #f2f2ef;
 }
 
 .itinerary-map__canvas .leaflet-tile-pane {
-  filter: grayscale(1) contrast(0.96) brightness(1.04);
+  filter: none;
 }
 
 .itinerary-pin-wrap {

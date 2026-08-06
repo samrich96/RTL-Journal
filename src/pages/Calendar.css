@@ -396,8 +396,9 @@
 .trip-card__more {
   width: 30px;
   height: 30px;
-  border-radius: 100px;
+  border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .trip-card__avatars img + img,
@@ -409,10 +410,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #d9d9d9;
-  color: #555;
-  font-size: 0.72rem;
-  font-weight: 600;
+  min-width: 30px;
+  padding: 0;
+  border: 1px solid #fff;
+  background: #2b2b2b;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
 }
 
 .trip-card__days {
@@ -432,109 +438,6 @@
   color: var(--neutral-600);
   font-size: 1.125rem;
   font-weight: 600;
-}
-
-.filter-sheet {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.filter-sheet__backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: rgba(43, 43, 43, 0.28);
-  cursor: pointer;
-}
-
-.filter-sheet__panel {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 430px);
-  padding: 0 10px 18px;
-  border-radius: 34px 34px 28px 28px;
-  background: white;
-  box-shadow: 0 -8px 30px rgba(43, 43, 43, 0.12);
-}
-
-.filter-sheet__grabber {
-  width: 42px;
-  height: 5px;
-  margin: 10px auto 0;
-  border-radius: 100px;
-  background: #d0d0d0;
-}
-
-.filter-sheet__list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 22px 20px 18px;
-}
-
-.filter-sheet__row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: #4e4b4b;
-  font-size: 1rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.filter-sheet__row--locked {
-  color: #9d9d9d;
-  cursor: default;
-}
-
-.filter-sheet__check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
-  border: 1.5px solid #cfcfcf;
-  background: white;
-  color: white;
-}
-
-.filter-sheet__check--on {
-  border-color: transparent;
-  background: #2b2b2b;
-}
-
-.filter-sheet__check--locked {
-  opacity: 0.9;
-}
-
-.filter-sheet__swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-}
-
-.filter-sheet__apply {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(100% - 40px);
-  margin: 0 20px 8px;
-  border: 0;
-  border-radius: 100px;
-  padding: 12px 20px;
-  background: #2b2b2b;
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 @media (max-width: 639px) {
@@ -620,11 +523,5 @@
     min-height: 110px;
   }
 
-  .filter-sheet {
-    align-items: center;
-  }
 
-  .filter-sheet__panel {
-    border-radius: 28px;
-  }
 }

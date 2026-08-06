@@ -12,6 +12,32 @@
   padding: 20px 20px 108px;
 }
 
+.discover__shell--all {
+  padding-top: 8px;
+}
+
+.discover .profile-all__toolbar h1 {
+  margin: 0;
+  flex: 1;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--neutral-600);
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.discover .profile-chip--close-friend {
+  background: #46ae24;
+}
+
+.discover .profile-chip--others {
+  background: #717171;
+}
+
+.discover .profile-chip--trips {
+  background: #198cf8;
+}
+
 .discover__main {
   display: flex;
   flex-direction: column;

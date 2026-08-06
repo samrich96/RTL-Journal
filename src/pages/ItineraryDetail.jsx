@@ -52,12 +52,17 @@ export default function ItineraryDetail({ onClose }) {
   const sheetRef = useRef(null)
   const bodyRef = useRef(null)
   const dragStartY = useRef(null)
+  const dragDelta = useRef(0)
+  const didDrag = useRef(false)
   const [sheetState, setSheetState] = useState('peek')
+  const [dragY, setDragY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
   const [eventFilter, setEventFilter] = useState('all')
   const [tab, setTab] = useState('Overview')
   const [expandedCopy, setExpandedCopy] = useState(false)
   const [expandedBudget, setExpandedBudget] = useState(null)
   const [selectedBudget, setSelectedBudget] = useState(null)
+  const [stickyPinned, setStickyPinned] = useState(false)
 
   function toggleBudgetCategory(id) {
     setExpandedBudget((current) => (current === id ? null : id))
@@ -84,8 +89,16 @@ export default function ItineraryDetail({ onClose }) {
   useEffect(() => {
     if (sheetState === 'peek' && bodyRef.current) {
       bodyRef.current.scrollTop = 0
+      setStickyPinned(false)
     }
   }, [sheetState])
+
+  useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0
+      setStickyPinned(false)
+    }
+  }, [tab])
 
   function expandSheet() {
     setSheetState('expanded')
@@ -96,29 +109,88 @@ export default function ItineraryDetail({ onClose }) {
     setExpandedCopy(false)
   }
 
+  function resetDrag() {
+    dragStartY.current = null
+    dragDelta.current = 0
+    setDragY(0)
+    setIsDragging(false)
+  }
+
   function onBodyScroll(event) {
-    if (sheetState === 'peek' && event.currentTarget.scrollTop > 12) {
+    const scroller = event.currentTarget
+    if (sheetState === 'peek' && scroller.scrollTop > 12) {
       expandSheet()
     }
+    setStickyPinned(scroller.scrollTop > 48)
   }
 
   function onGrabberPointerDown(event) {
+    if (event.button != null && event.button !== 0) return
     dragStartY.current = event.clientY
+    dragDelta.current = 0
+    didDrag.current = false
+    setIsDragging(true)
     event.currentTarget.setPointerCapture?.(event.pointerId)
   }
 
-  function onGrabberPointerUp(event) {
+  function onGrabberPointerMove(event) {
     if (dragStartY.current == null) return
     const delta = event.clientY - dragStartY.current
-    dragStartY.current = null
 
-    if (delta > 40) {
+    // Expanded: only drag down. Peek: drag down to dismiss or up to expand.
+    const next =
+      sheetState === 'expanded' ? Math.max(0, delta) : delta
+
+    if (Math.abs(delta) > 10) {
+      didDrag.current = true
+    }
+
+    dragDelta.current = next
+    setDragY(next)
+  }
+
+  function finishGrabberGesture() {
+    if (dragStartY.current == null) return
+
+    const delta = dragDelta.current
+    const dragged = didDrag.current
+    resetDrag()
+
+    const dismissThreshold = 72
+    const collapseThreshold = 56
+    const expandThreshold = -40
+
+    if (dragged && delta >= dismissThreshold && sheetState === 'peek') {
+      onClose()
+      return
+    }
+
+    if (dragged && delta >= collapseThreshold && sheetState === 'expanded') {
       collapseSheet()
       return
     }
-    if (delta < -40) {
+
+    if (dragged && delta <= expandThreshold && sheetState === 'peek') {
       expandSheet()
     }
+  }
+
+  function onGrabberPointerUp() {
+    finishGrabberGesture()
+  }
+
+  function onGrabberPointerCancel() {
+    resetDrag()
+    didDrag.current = false
+  }
+
+  function onGrabberClick() {
+    if (didDrag.current) {
+      didDrag.current = false
+      return
+    }
+    if (sheetState === 'peek') expandSheet()
+    else collapseSheet()
   }
 
   function onSheetWheel(event) {
@@ -126,6 +198,11 @@ export default function ItineraryDetail({ onClose }) {
       expandSheet()
     }
   }
+
+  const sheetStyle =
+    dragY !== 0
+      ? { transform: `translate3d(0, ${dragY}px, 0)` }
+      : undefined
 
   return (
     <div className="itinerary-detail">
@@ -164,23 +241,26 @@ export default function ItineraryDetail({ onClose }) {
           {EVENT_FILTERS.map((filter) => {
             const Icon = FILTER_ICONS[filter.type]
             const active = eventFilter === filter.id
+            const pinStyle = filter.type ? PIN_STYLES[filter.type] : null
+            const background = pinStyle
+              ? pinStyle.gradient
+              : 'linear-gradient(180deg, #9a9a9a 0%, #6e6e6e 100%)'
             return (
               <button
                 key={filter.id}
                 type="button"
                 role="tab"
                 aria-selected={active}
-                className={`itinerary-filter${active ? ' itinerary-filter--active' : ''}`}
+                className={`itinerary-filter itinerary-filter--keyed${
+                  active ? ' itinerary-filter--active' : ''
+                }`}
+                style={{
+                  background,
+                  color: '#fffefd',
+                }}
                 onClick={() => setEventFilter(filter.id)}
               >
-                {Icon ? (
-                  <span
-                    className="itinerary-filter__swatch"
-                    style={{ background: PIN_STYLES[filter.type].gradient }}
-                  >
-                    <Icon size={10} strokeWidth={2.4} color="#fffefd" />
-                  </span>
-                ) : null}
+                {Icon ? <Icon size={12} strokeWidth={2.4} color="#fffefd" /> : null}
                 {filter.label}
               </button>
             )
@@ -190,83 +270,109 @@ export default function ItineraryDetail({ onClose }) {
 
       <section
         ref={sheetRef}
-        className={`itinerary-sheet itinerary-sheet--${sheetState}`}
+        className={`itinerary-sheet itinerary-sheet--${sheetState}${
+          isDragging ? ' itinerary-sheet--dragging' : ''
+        }`}
         aria-label="Itinerary details"
+        style={sheetStyle}
         onWheel={onSheetWheel}
       >
         <div
           className="itinerary-sheet__grabber-hit"
           onPointerDown={onGrabberPointerDown}
+          onPointerMove={onGrabberPointerMove}
           onPointerUp={onGrabberPointerUp}
-          onClick={() =>
-            sheetState === 'peek' ? expandSheet() : collapseSheet()
-          }
+          onPointerCancel={onGrabberPointerCancel}
+          onClick={onGrabberClick}
+          role="slider"
+          aria-label="Resize itinerary card"
+          aria-valuetext={sheetState === 'expanded' ? 'Expanded' : 'Collapsed'}
         >
           <div className="itinerary-sheet__grabber" />
         </div>
 
-        <div className="itinerary-sheet__hero">
-          <img src={trip.hero || trip.coverFallback} alt="" />
-          <div className="itinerary-sheet__hero-fade" />
-          <div className="itinerary-sheet__avatars">
-            {trip.avatars.map((avatar) => (
-              <span key={avatar.src} className="itinerary-sheet__avatar">
-                <img src={avatar.src} alt="" />
-                {avatar.badge === 'star' ? (
-                  <span className="itinerary-sheet__avatar-badge" aria-hidden>
-                    <Star size={8} fill="currentColor" strokeWidth={0} />
-                  </span>
-                ) : null}
-              </span>
-            ))}
-          </div>
-        </div>
-
         <div
           ref={bodyRef}
-          className="itinerary-sheet__body"
+          className="itinerary-sheet__scroll"
           onScroll={onBodyScroll}
         >
-          <div className="itinerary-sheet__header">
-            <h1>{trip.title}</h1>
-            <div className="itinerary-sheet__meta">
-              <img src={trip.flag} alt="" width={22} height={18} />
-              <span>
-                <CircleDollarSign size={16} strokeWidth={1.75} />
-                {trip.price}
-              </span>
-              <span>
-                <Clock size={16} strokeWidth={1.75} />
-                {trip.duration}
-              </span>
-              <ChevronRight size={14} strokeWidth={2} className="itinerary-sheet__meta-chevron" />
+          <div className="itinerary-sheet__hero">
+            <img
+              className="itinerary-sheet__hero-img"
+              src={trip.hero || trip.coverFallback}
+              alt=""
+            />
+            <div className="itinerary-sheet__hero-fade" />
+          </div>
+
+          <div
+            className={`itinerary-sheet__sticky${
+              stickyPinned ? ' itinerary-sheet__sticky--pinned' : ''
+            }`}
+          >
+            <div className="itinerary-sheet__avatars">
+              {trip.avatars.map((avatar) => (
+                <span key={avatar.src} className="itinerary-sheet__avatar">
+                  <img src={avatar.src} alt="" />
+                  {avatar.badge === 'star' ? (
+                    <span className="itinerary-sheet__avatar-badge" aria-hidden>
+                      <Star size={8} fill="currentColor" strokeWidth={0} />
+                    </span>
+                  ) : null}
+                </span>
+              ))}
+            </div>
+
+            <div className="itinerary-sheet__header">
+              <h1>{trip.title}</h1>
+              <div className="itinerary-sheet__meta">
+                <img src={trip.flag} alt="" width={22} height={18} />
+                <span>
+                  <CircleDollarSign size={16} strokeWidth={1.75} />
+                  {trip.price}
+                </span>
+                <span>
+                  <Clock size={16} strokeWidth={1.75} />
+                  {trip.duration}
+                </span>
+                <ChevronRight
+                  size={14}
+                  strokeWidth={2}
+                  className="itinerary-sheet__meta-chevron"
+                />
+              </div>
+            </div>
+
+            <div
+              className="itinerary-sheet__tabs"
+              role="tablist"
+              aria-label="Itinerary sections"
+            >
+              {TABS.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === item}
+                  className={`itinerary-sheet__tab${
+                    tab === item ? ' itinerary-sheet__tab--active' : ''
+                  }`}
+                  onClick={() => {
+                    setTab(item)
+                    if (item !== 'Budget') {
+                      setSelectedBudget(null)
+                      setExpandedBudget(null)
+                    }
+                    expandSheet()
+                  }}
+                >
+                  {item}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="itinerary-sheet__tabs" role="tablist" aria-label="Itinerary sections">
-            {TABS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                role="tab"
-                aria-selected={tab === item}
-                className={`itinerary-sheet__tab${
-                  tab === item ? ' itinerary-sheet__tab--active' : ''
-                }`}
-                onClick={() => {
-                  setTab(item)
-                  if (item !== 'Budget') {
-                    setSelectedBudget(null)
-                    setExpandedBudget(null)
-                  }
-                  expandSheet()
-                }}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
+          <div className="itinerary-sheet__body">
           {tab === 'Overview' ? (
             <div className="itinerary-sheet__panel">
               <p>
@@ -408,6 +514,7 @@ export default function ItineraryDetail({ onClose }) {
               </ul>
             </div>
           ) : null}
+          </div>
         </div>
       </section>
     </div>

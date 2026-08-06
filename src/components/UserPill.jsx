@@ -8,9 +8,9 @@ const badgeIcons = {
 }
 
 const badgeColors = {
-  star: 'rgba(70, 174, 36, 0.85)',
-  group: 'rgba(91, 82, 132, 0.85)',
-  crown: 'rgba(4, 97, 118, 0.85)',
+  star: '#46ae24',
+  group: '#a55fde',
+  crown: '#198cf8',
 }
 
 export default function UserPill({

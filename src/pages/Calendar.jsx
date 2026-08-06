@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import {
-  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
+import FilterSheet from '../components/FilterSheet'
 import { FILTERS, calendarTrips } from '../data/calendarTrips'
 import './Calendar.css'
 
@@ -485,66 +485,20 @@ export default function Calendar({ active = 'calendar', onNavigate, onOpenItiner
       </div>
       <TabBar active={active} onNavigate={onNavigate} />
 
-      {sheetOpen ? (
-        <div className="filter-sheet" role="dialog" aria-modal="true" aria-label="Filter trips">
-          <button
-            type="button"
-            className="filter-sheet__backdrop"
-            aria-label="Close filters"
-            onClick={() => setSheetOpen(false)}
-          />
-          <div className="filter-sheet__panel">
-            <div className="filter-sheet__grabber" />
-            <div className="filter-sheet__list">
-              {Object.values(FILTERS).map((filter) => {
-                const checked = draftFilters[filter.id]
-                const locked = filter.locked
-                return (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    className={`filter-sheet__row${locked ? ' filter-sheet__row--locked' : ''}${
-                      checked ? ' filter-sheet__row--checked' : ''
-                    }`}
-                    onClick={() => {
-                      if (locked) return
-                      setDraftFilters((current) => ({
-                        ...current,
-                        [filter.id]: !current[filter.id],
-                      }))
-                    }}
-                  >
-                    <span
-                      className={`filter-sheet__check${checked ? ' filter-sheet__check--on' : ''}${
-                        locked ? ' filter-sheet__check--locked' : ''
-                      }`}
-                      style={
-                        checked
-                          ? { backgroundColor: filter.color, borderColor: filter.color }
-                          : undefined
-                      }
-                    >
-                      {checked ? <Check size={14} strokeWidth={3} /> : null}
-                    </span>
-                    <span
-                      className="filter-sheet__swatch"
-                      style={{ backgroundColor: filter.color }}
-                    />
-                    <span>{filter.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-            <button
-              type="button"
-              className="filter-sheet__apply"
-              onClick={applySheet}
-            >
-              Apply
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <FilterSheet
+        open={sheetOpen}
+        label="Filter trips"
+        options={Object.values(FILTERS)}
+        values={draftFilters}
+        onToggle={(id) =>
+          setDraftFilters((current) => ({
+            ...current,
+            [id]: !current[id],
+          }))
+        }
+        onClose={() => setSheetOpen(false)}
+        onApply={applySheet}
+      />
     </div>
   )
 }

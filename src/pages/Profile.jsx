@@ -18,6 +18,7 @@ import Header from '../components/Header'
 import TabBar from '../components/TabBar'
 import MiniCard from '../components/MiniCard'
 import BigCard from '../components/BigCard'
+import FilterSheet from '../components/FilterSheet'
 import {
   profileAllPreview,
   profileItineraries,
@@ -32,6 +33,11 @@ const SEGMENTS = [
   { id: 'trips', label: 'Top 3 Trips' },
   { id: 'lodging', label: 'Top 3 Lodging' },
   { id: 'all', label: 'All Itineraries' },
+]
+
+const PROFILE_FILTERS = [
+  { id: 'myTrips', label: 'My Trips', color: '#198cf8', locked: true },
+  { id: 'shared', label: 'Shared', color: '#a55fde', locked: false },
 ]
 
 function SettingsIcon({ type }) {
@@ -157,61 +163,20 @@ export default function Profile({ active = 'profile', onNavigate, onOpenItinerar
         </div>
         <TabBar active={active} onNavigate={onNavigate} />
 
-        {filterOpen ? (
-          <div
-            className="profile-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Filter itineraries"
-          >
-            <button
-              type="button"
-              className="profile-sheet__backdrop"
-              aria-label="Close"
-              onClick={() => setFilterOpen(false)}
-            />
-            <div className="profile-sheet__panel">
-              <div className="profile-sheet__grabber" />
-              <div className="profile-sheet__list">
-                {[
-                  { id: 'myTrips', label: 'My Trips', locked: true },
-                  { id: 'shared', label: 'Shared', locked: false },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`profile-sheet__row${
-                      item.locked ? ' profile-sheet__row--locked' : ''
-                    }`}
-                    onClick={() => {
-                      if (item.locked) return
-                      setDraftFilters((current) => ({
-                        ...current,
-                        [item.id]: !current[item.id],
-                      }))
-                    }}
-                  >
-                    <span
-                      className={`profile-sheet__check${
-                        draftFilters[item.id] ? ' profile-sheet__check--on' : ''
-                      }${item.locked ? ' profile-sheet__check--locked' : ''}`}
-                    >
-                      {draftFilters[item.id] ? '✓' : ''}
-                    </span>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                className="profile-sheet__apply"
-                onClick={applyFilters}
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-        ) : null}
+        <FilterSheet
+          open={filterOpen}
+          label="Filter itineraries"
+          options={PROFILE_FILTERS}
+          values={draftFilters}
+          onToggle={(id) =>
+            setDraftFilters((current) => ({
+              ...current,
+              [id]: !current[id],
+            }))
+          }
+          onClose={() => setFilterOpen(false)}
+          onApply={applyFilters}
+        />
       </div>
     )
   }
