@@ -8,7 +8,9 @@ export default function CategoryPills() {
 
   return (
     <section className="categories">
-      <h2 className="section-title">Categories</h2>
+      <div className="section-heading">
+        <h2 className="section-title">Categories</h2>
+      </div>
       <div className="categories__scroll" role="tablist" aria-label="Itinerary categories">
         {categories.map((category) => {
           const isActive = category === active

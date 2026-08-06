@@ -1,37 +1,35 @@
 .categories {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .categories__scroll {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  padding-inline: 24px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.categories__scroll::-webkit-scrollbar {
-  display: none;
 }
 
 .category-pill {
-  flex-shrink: 0;
-  border: 1px solid #f1f1f1;
-  border-radius: 100px;
-  padding: 10px;
-  background: rgba(246, 246, 246, 0.75);
+  border: 1px solid #ececec;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(246, 246, 246, 0.85);
   color: #272727;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 0.92rem;
   font-weight: 400;
   white-space: nowrap;
   cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
-.category-pill--active {
+.category-pill:hover {
+  border-color: #ddd;
+  background: #efefef;
+}
+
+.category-pill--active,
+.category-pill--active:hover {
   border-color: transparent;
   background: #272727;
   color: white;
@@ -42,9 +40,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 24px;
+  gap: 12px;
+  margin-top: 14px;
   color: #555;
-  font-size: 14px;
+  font-size: 0.92rem;
 }
 
 .categories__results p {
@@ -55,23 +54,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid #f1f1f1;
-  border-radius: 100px;
-  background: rgba(246, 246, 246, 0.75);
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  background: rgba(246, 246, 246, 0.85);
   color: var(--neutral-600);
   cursor: pointer;
+  transition: background 160ms ease;
 }
 
-@media (min-width: 1024px) {
-  .categories__scroll,
-  .categories__results {
-    padding-inline: 0;
+.filter-button:hover {
+  background: #efefef;
+}
+
+@media (max-width: 639px) {
+  .categories__scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
   }
 
-  .categories__scroll {
-    flex-wrap: wrap;
-    overflow: visible;
+  .category-pill {
+    flex-shrink: 0;
   }
 }

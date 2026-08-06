@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   CalendarDays,
   LayoutGrid,
@@ -15,30 +14,32 @@ const tabs = [
   { id: 'profile', label: 'Profile', icon: UserRound },
 ]
 
-export default function TabBar() {
-  const [active, setActive] = useState('discover')
-
+export default function TabBar({ active = 'discover', onNavigate }) {
   return (
-    <nav className="tab-bar" aria-label="Primary">
-      <div className="tab-bar__group">
-        {tabs.map(({ id, label, icon: Icon }) => {
-          const isActive = id === active
-          return (
-            <button
-              key={id}
-              type="button"
-              className={`tab-bar__item${isActive ? ' tab-bar__item--active' : ''}`}
-              aria-current={isActive ? 'page' : undefined}
-              aria-label={label}
-              onClick={() => setActive(id)}
-            >
-              <Icon size={22} strokeWidth={1.75} />
-            </button>
-          )
-        })}
-      </div>
-      <button className="tab-bar__search" type="button" aria-label="Search">
-        <Search size={22} strokeWidth={1.75} />
+    <nav className="mobile-nav" aria-label="Mobile primary">
+      {tabs.map(({ id, label, icon: Icon }) => {
+        const isActive = id === active
+        return (
+          <button
+            key={id}
+            type="button"
+            className={`mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`}
+            aria-current={isActive ? 'page' : undefined}
+            onClick={() => onNavigate?.(id)}
+          >
+            <Icon size={20} strokeWidth={1.75} />
+            <span>{label}</span>
+          </button>
+        )
+      })}
+      <button
+        className={`mobile-nav__item${active === 'search' ? ' mobile-nav__item--active' : ''}`}
+        type="button"
+        aria-current={active === 'search' ? 'page' : undefined}
+        onClick={() => onNavigate?.('search')}
+      >
+        <Search size={20} strokeWidth={1.75} />
+        <span>Search</span>
       </button>
     </nav>
   )

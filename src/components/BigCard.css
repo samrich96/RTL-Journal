@@ -4,14 +4,20 @@
   gap: 12px;
   width: 100%;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.big-card--clickable {
+  cursor: pointer;
 }
 
 .big-card__media {
   position: relative;
   width: 100%;
-  height: 216px;
-  border-radius: 20px;
+  aspect-ratio: 16 / 10;
+  border-radius: 18px;
   overflow: hidden;
+  background: #e8eef2;
 }
 
 .big-card__image {
@@ -20,6 +26,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 280ms ease;
+}
+
+.big-card:hover .big-card__image {
+  transform: scale(1.03);
 }
 
 .big-card__overlay {
@@ -29,20 +40,26 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 16px 12px;
+  padding: 14px 12px;
 }
 
 .big-card__favorite {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: 100px;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.82);
   color: var(--neutral-600);
   cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.big-card__favorite:hover {
+  background: white;
+  transform: scale(1.05);
 }
 
 .big-card__footer {
@@ -55,24 +72,25 @@
 .big-card__info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
   flex: 1;
 }
 
 .big-card__title {
   margin: 0;
-  font-size: 16px;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--neutral-600);
-  line-height: 1.25;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .big-card__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 10px 14px;
   min-height: 26px;
 }
 
@@ -108,7 +126,7 @@
   align-items: center;
   gap: 6px;
   color: var(--neutral-600);
-  font-size: 14px;
+  font-size: 0.92rem;
 }
 
 .big-card__menu {
@@ -118,16 +136,15 @@
   padding: 0;
   cursor: pointer;
   flex-shrink: 0;
+  border-radius: 8px;
 }
 
-@media (min-width: 768px) {
-  .big-card__media {
-    height: 240px;
-  }
+.big-card__menu:hover {
+  background: rgba(43, 43, 43, 0.05);
 }
 
 @media (min-width: 1024px) {
   .big-card__media {
-    height: 260px;
+    aspect-ratio: 5 / 3;
   }
 }

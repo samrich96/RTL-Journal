@@ -1,0 +1,106 @@
+.budget-donut {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 280px);
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+.budget-donut__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.budget-donut__segment {
+  cursor: pointer;
+  transition: opacity 200ms ease, stroke-width 200ms ease;
+  outline: none;
+}
+
+.budget-donut__segment:hover,
+.budget-donut__segment:focus-visible {
+  filter: brightness(1.06);
+}
+
+.budget-donut__segment--dimmed {
+  opacity: 0.28;
+}
+
+.budget-donut__segment--active {
+  stroke-width: 40;
+}
+
+.budget-donut__icons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.budget-donut__icon-btn {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 100px;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.budget-donut__icon-btn--dimmed {
+  opacity: 0.35;
+}
+
+.budget-donut__center {
+  position: absolute;
+  inset: 18%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: 100%;
+  background: #fff;
+  color: #2b2b2b;
+  text-align: center;
+  cursor: pointer;
+}
+
+.budget-donut__label,
+.budget-donut .budget-donut__label {
+  margin: 0;
+  color: #2b2b2b;
+  font-size: 0.95rem;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.budget-donut__total,
+.budget-donut .budget-donut__total {
+  margin: 0;
+  color: #2b2b2b;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.budget-donut__pct,
+.budget-donut .budget-donut__pct {
+  margin: 0;
+  color: #717171;
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.2;
+}

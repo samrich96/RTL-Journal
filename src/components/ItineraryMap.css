@@ -1,0 +1,50 @@
+.itinerary-map {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transition: opacity 280ms ease, filter 280ms ease;
+}
+
+.itinerary-map--dimmed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.itinerary-map__canvas {
+  width: 100%;
+  height: 100%;
+  background: #dfe4e8;
+}
+
+.itinerary-map__canvas .leaflet-tile-pane {
+  filter: grayscale(1) contrast(0.96) brightness(1.04);
+}
+
+.itinerary-pin-wrap {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.itinerary-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid #fff;
+  border-radius: 100px;
+  box-shadow: 0 2px 8px rgba(43, 43, 43, 0.22);
+  color: #fffefd;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.itinerary-pin__label {
+  display: block;
+  transform: translateY(0.5px);
+}
+
+.itinerary-pin svg {
+  display: block;
+}
