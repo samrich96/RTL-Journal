@@ -136,7 +136,7 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
           >
             <div className="section-heading">
               <h2 className="section-title">All itineraries</h2>
-              <p className="section-note">Updated daily from traveler journals</p>
+              <p className="section-note">Displaying total cost per person</p>
             </div>
             <div className="feed">
               {visibleItems.map((itinerary) => (
