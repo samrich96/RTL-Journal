@@ -58,15 +58,11 @@ export default function BudgetDonut({ categories, selectedId = null, onSelect })
     const sweep = (length / CIRCUMFERENCE) * 360
     const midAngle = startAngle + sweep / 2
     const iconPos = polar(RADIUS, midAngle)
-    const gradFrom = polar(RADIUS + STROKE / 2, midAngle)
-    const gradTo = polar(RADIUS - STROKE / 2, midAngle)
     const segment = {
       ...row,
       length,
       dashOffset: cursor,
       iconPos,
-      gradFrom,
-      gradTo,
       Icon: ICONS[row.icon] || CircleDollarSign,
     }
     cursor += length + GAP
@@ -92,56 +88,56 @@ export default function BudgetDonut({ categories, selectedId = null, onSelect })
               key={`grad-${segment.id}`}
               id={`budget-grad-${segment.id}`}
               gradientUnits="userSpaceOnUse"
-              x1={segment.gradFrom.x}
-              y1={segment.gradFrom.y}
-              x2={segment.gradTo.x}
-              y2={segment.gradTo.y}
+              x1={CX}
+              y1={CY - RADIUS - STROKE / 2}
+              x2={CX}
+              y2={CY + RADIUS + STROKE / 2}
             >
+              {/* Matches list icon buttons: linear-gradient(180deg, from, to) */}
               <stop offset="0%" stopColor={segment.gradientFrom} />
               <stop offset="100%" stopColor={segment.color} />
             </linearGradient>
           ))}
         </defs>
 
-        <g transform={`rotate(-90 ${CX} ${CY})`}>
-          {segments.map((segment) => {
-            const dimmed = selectedId && selectedId !== segment.id
-            return (
-              <circle
-                key={segment.id}
-                cx={CX}
-                cy={CY}
-                r={RADIUS}
-                fill="none"
-                stroke={`url(#budget-grad-${segment.id})`}
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                strokeDasharray={`${segment.length} ${CIRCUMFERENCE - segment.length}`}
-                strokeDashoffset={-segment.dashOffset}
-                className={`budget-donut__segment${
-                  dimmed ? ' budget-donut__segment--dimmed' : ''
-                }${
-                  selectedId === segment.id ? ' budget-donut__segment--active' : ''
-                }`}
-                onClick={() => handleSelect(segment.id)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    handleSelect(segment.id)
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-pressed={selectedId === segment.id}
-                aria-label={`${segment.label}, ${formatMoney(segment.amount)}`}
-              >
-                <title>
-                  {segment.label}: {formatMoney(segment.amount)}
-                </title>
-              </circle>
-            )
-          })}
-        </g>
+        {segments.map((segment) => {
+          const dimmed = selectedId && selectedId !== segment.id
+          return (
+            <circle
+              key={segment.id}
+              cx={CX}
+              cy={CY}
+              r={RADIUS}
+              fill="none"
+              stroke={`url(#budget-grad-${segment.id})`}
+              strokeWidth={STROKE}
+              strokeLinecap="round"
+              strokeDasharray={`${segment.length} ${CIRCUMFERENCE - segment.length}`}
+              /* Circle strokes start at 3 o'clock; shift by 1/4 turn so segments start at top */
+              strokeDashoffset={CIRCUMFERENCE / 4 - segment.dashOffset}
+              className={`budget-donut__segment${
+                dimmed ? ' budget-donut__segment--dimmed' : ''
+              }${
+                selectedId === segment.id ? ' budget-donut__segment--active' : ''
+              }`}
+              onClick={() => handleSelect(segment.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  handleSelect(segment.id)
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-pressed={selectedId === segment.id}
+              aria-label={`${segment.label}, ${formatMoney(segment.amount)}`}
+            >
+              <title>
+                {segment.label}: {formatMoney(segment.amount)}
+              </title>
+            </circle>
+          )
+        })}
       </svg>
 
       <div className="budget-donut__icons" aria-hidden>
@@ -158,6 +154,7 @@ export default function BudgetDonut({ categories, selectedId = null, onSelect })
               style={{
                 left: `${(segment.iconPos.x / SIZE) * 100}%`,
                 top: `${(segment.iconPos.y / SIZE) * 100}%`,
+                background: `linear-gradient(180deg, ${segment.gradientFrom} 0%, ${segment.color} 100%)`,
               }}
               onClick={() => handleSelect(segment.id)}
               tabIndex={-1}
