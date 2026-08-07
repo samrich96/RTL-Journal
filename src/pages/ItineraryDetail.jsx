@@ -105,6 +105,7 @@ export default function ItineraryDetail() {
   const [sheetState, setSheetState] = useState('peek')
   const [dragY, setDragY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [scrollAtTop, setScrollAtTop] = useState(true)
   const [eventFilter, setEventFilter] = useState('all')
   const [tab, setTab] = useState('Overview')
   const [expandedCopy, setExpandedCopy] = useState(false)
@@ -305,9 +306,33 @@ export default function ItineraryDetail() {
     ) {
       bodyRef.current.scrollTop = 0
       setStickyPinned(false)
+      setScrollAtTop(true)
       setPhotoPreview(null)
       setPhotosOpen(false)
     }
+  }, [sheetState])
+
+  // Expanded: claim downward touches at scroll top so the sheet can collapse
+  // from anywhere, not only the grabber (browser scroll otherwise wins).
+  useEffect(() => {
+    if (sheetState !== 'expanded') return undefined
+    const sheet = sheetRef.current
+    if (!sheet) return undefined
+
+    function onTouchMove(event) {
+      if (sheetDragActive.current) {
+        event.preventDefault()
+        return
+      }
+      if (dragStartY.current == null || event.touches.length !== 1) return
+      const atTop = (bodyRef.current?.scrollTop ?? 0) <= 0
+      if (!atTop) return
+      const deltaY = event.touches[0].clientY - dragStartY.current
+      if (deltaY > 8) event.preventDefault()
+    }
+
+    sheet.addEventListener('touchmove', onTouchMove, { passive: false })
+    return () => sheet.removeEventListener('touchmove', onTouchMove)
   }, [sheetState])
 
   useEffect(() => {
@@ -369,6 +394,7 @@ export default function ItineraryDetail() {
 
   function expandSheet() {
     setSheetState('expanded')
+    setScrollAtTop(true)
   }
 
   function collapseSheet() {
@@ -400,6 +426,7 @@ export default function ItineraryDetail() {
     if (sheetState === 'peek' && scroller.scrollTop > 12) {
       expandSheet()
     }
+    setScrollAtTop(scroller.scrollTop <= 0)
     setStickyPinned(scroller.scrollTop > 48)
   }
 
@@ -438,7 +465,7 @@ export default function ItineraryDetail() {
     const deltaX = event.clientX - (dragStartX.current ?? event.clientX)
 
     if (!sheetDragActive.current) {
-      if (Math.abs(deltaY) < 10 && Math.abs(deltaX) < 10) return
+      if (Math.abs(deltaY) < 8 && Math.abs(deltaX) < 8) return
       if (!canStartSheetDrag(deltaX, deltaY)) {
         dragStartY.current = null
         dragStartX.current = null
@@ -449,10 +476,12 @@ export default function ItineraryDetail() {
       didDrag.current = true
       setIsDragging(true)
       event.currentTarget.setPointerCapture?.(event.pointerId)
+      // Stop the scroll container from competing once sheet drag starts.
+      if (bodyRef.current) bodyRef.current.style.overflow = 'hidden'
     }
 
     const next = sheetState === 'expanded' ? Math.max(0, deltaY) : deltaY
-    if (Math.abs(deltaY) > 10) didDrag.current = true
+    if (Math.abs(deltaY) > 8) didDrag.current = true
     dragDelta.current = next
     setDragY(next)
   }
@@ -462,6 +491,7 @@ export default function ItineraryDetail() {
 
     const delta = dragDelta.current
     const dragged = didDrag.current
+    if (bodyRef.current) bodyRef.current.style.overflow = ''
     resetDrag()
     if (dragged) didDrag.current = true
 
@@ -501,6 +531,7 @@ export default function ItineraryDetail() {
   }
 
   function onSheetPointerCancel() {
+    if (bodyRef.current) bodyRef.current.style.overflow = ''
     resetDrag()
     didDrag.current = false
   }
@@ -728,6 +759,10 @@ export default function ItineraryDetail() {
         ref={sheetRef}
         className={`itinerary-sheet itinerary-sheet--${sheetState}${
           isDragging ? ' itinerary-sheet--dragging' : ''
+        }${
+          sheetState === 'expanded' && scrollAtTop
+            ? ' itinerary-sheet--at-top'
+            : ''
         }`}
         aria-label="Itinerary details"
         style={sheetStyle}

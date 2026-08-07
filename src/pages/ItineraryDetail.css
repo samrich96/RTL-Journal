@@ -224,6 +224,24 @@
   background: #1f3518;
 }
 
+.itinerary-sheet--expanded .itinerary-sheet__scroll {
+  overscroll-behavior-y: none;
+}
+
+/* At scroll top, allow upward scroll only — downward goes to sheet collapse. */
+.itinerary-sheet--expanded.itinerary-sheet--at-top {
+  touch-action: pan-up;
+}
+
+.itinerary-sheet--expanded.itinerary-sheet--at-top .itinerary-sheet__scroll {
+  touch-action: pan-up;
+}
+
+.itinerary-sheet--expanded.itinerary-sheet--dragging,
+.itinerary-sheet--expanded.itinerary-sheet--dragging .itinerary-sheet__scroll {
+  touch-action: none;
+}
+
 .itinerary-sheet--peek,
 .itinerary-sheet--minimized {
   touch-action: none;
