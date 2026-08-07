@@ -258,20 +258,69 @@
 }
 
 .itinerary-sheet--peek .itinerary-sheet__hero {
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
 }
 
 .itinerary-sheet--peek .itinerary-sheet__sticky {
   position: relative;
   top: auto;
-  flex-shrink: 0;
-  margin-top: -96px;
-  padding: 28px 14px 12px;
-  gap: 8px;
+  flex: 0 0 auto;
+  margin-top: -72px;
+  padding: 16px 12px 10px;
+  gap: 6px;
 }
 
 .itinerary-sheet--peek .itinerary-sheet__body {
   display: none;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__header h1 {
+  margin: 0 0 4px;
+  font-size: clamp(1.2rem, 3.8vw, 1.55rem);
+}
+
+.itinerary-sheet--peek .itinerary-sheet__meta {
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__tabs {
+  gap: 6px;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__tab {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__quick-actions {
+  margin-top: 10px;
+  flex-shrink: 0;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__quick-action {
+  height: 52px;
+  gap: 4px;
+  padding: 6px 4px;
+  font-size: 0.8rem;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__quick-action-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__avatars {
+  margin-bottom: 0;
+}
+
+.itinerary-sheet--peek .itinerary-sheet__avatar,
+.itinerary-sheet--peek .itinerary-sheet__avatar img {
+  width: 32px;
+  height: 32px;
 }
 
 .itinerary-sheet--minimized .itinerary-sheet__scroll {
