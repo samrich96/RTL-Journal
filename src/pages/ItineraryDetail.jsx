@@ -286,7 +286,10 @@ export default function ItineraryDetail({ onClose }) {
   }, [])
 
   useEffect(() => {
-    if (sheetState === 'peek' && bodyRef.current) {
+    if (
+      (sheetState === 'peek' || sheetState === 'minimized') &&
+      bodyRef.current
+    ) {
       bodyRef.current.scrollTop = 0
       setStickyPinned(false)
       setPhotoPreview(null)
@@ -360,6 +363,15 @@ export default function ItineraryDetail({ onClose }) {
     setExpandedCopy(false)
   }
 
+  function minimizeSheet() {
+    setSheetState('minimized')
+    setExpandedCopy(false)
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0
+      setStickyPinned(false)
+    }
+  }
+
   function resetDrag() {
     dragStartY.current = null
     dragDelta.current = 0
@@ -388,7 +400,7 @@ export default function ItineraryDetail({ onClose }) {
     if (dragStartY.current == null) return
     const delta = event.clientY - dragStartY.current
 
-    // Expanded: only drag down. Peek: drag down to dismiss or up to expand.
+    // Expanded: only drag down. Peek/minimized: both directions.
     const next =
       sheetState === 'expanded' ? Math.max(0, delta) : delta
 
@@ -409,20 +421,32 @@ export default function ItineraryDetail({ onClose }) {
 
     const dismissThreshold = 72
     const collapseThreshold = 56
+    const minimizeThreshold = 56
     const expandThreshold = -40
+    const restoreThreshold = -36
 
-    if (dragged && delta >= dismissThreshold && sheetState === 'peek') {
-      onClose()
-      return
-    }
-
-    if (dragged && delta >= collapseThreshold && sheetState === 'expanded') {
+    if (dragged && sheetState === 'expanded' && delta >= collapseThreshold) {
       collapseSheet()
       return
     }
 
-    if (dragged && delta <= expandThreshold && sheetState === 'peek') {
+    if (dragged && sheetState === 'peek' && delta >= minimizeThreshold) {
+      minimizeSheet()
+      return
+    }
+
+    if (dragged && sheetState === 'peek' && delta <= expandThreshold) {
       expandSheet()
+      return
+    }
+
+    if (dragged && sheetState === 'minimized' && delta <= restoreThreshold) {
+      collapseSheet()
+      return
+    }
+
+    if (dragged && sheetState === 'minimized' && delta >= dismissThreshold) {
+      onClose()
     }
   }
 
@@ -440,11 +464,16 @@ export default function ItineraryDetail({ onClose }) {
       didDrag.current = false
       return
     }
-    if (sheetState === 'peek') expandSheet()
+    if (sheetState === 'minimized') collapseSheet()
+    else if (sheetState === 'peek') expandSheet()
     else collapseSheet()
   }
 
   function onSheetWheel(event) {
+    if (sheetState === 'minimized' && event.deltaY < -8) {
+      collapseSheet()
+      return
+    }
     if (sheetState === 'peek' && event.deltaY > 8) {
       expandSheet()
     }
@@ -656,7 +685,13 @@ export default function ItineraryDetail({ onClose }) {
           onClick={onGrabberClick}
           role="slider"
           aria-label="Resize itinerary card"
-          aria-valuetext={sheetState === 'expanded' ? 'Expanded' : 'Collapsed'}
+          aria-valuetext={
+            sheetState === 'expanded'
+              ? 'Expanded'
+              : sheetState === 'minimized'
+                ? 'Map view'
+                : 'Default'
+          }
         >
           <div className="itinerary-sheet__grabber" />
         </div>
