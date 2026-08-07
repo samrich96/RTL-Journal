@@ -102,7 +102,16 @@ export default function ItineraryDetail() {
   const didDrag = useRef(false)
   const sheetDragActive = useRef(false)
   const dragPointerId = useRef(null)
+  const sheetStateRef = useRef('peek')
+  const gestureListenersBound = useRef(false)
+  const gestureApiRef = useRef({})
+  const stableGestureListeners = useRef({
+    move: (event) => gestureApiRef.current.move?.(event),
+    up: (event) => gestureApiRef.current.up?.(event),
+    cancel: (event) => gestureApiRef.current.cancel?.(event),
+  }).current
   const [sheetState, setSheetState] = useState('peek')
+  sheetStateRef.current = sheetState
   const [dragY, setDragY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [scrollAtTop, setScrollAtTop] = useState(true)
@@ -325,7 +334,7 @@ export default function ItineraryDetail() {
         return
       }
       if (dragStartY.current == null || event.touches.length !== 1) return
-      const atTop = (bodyRef.current?.scrollTop ?? 0) <= 0
+      const atTop = (bodyRef.current?.scrollTop ?? 0) <= 1
       if (!atTop) return
       const deltaY = event.touches[0].clientY - dragStartY.current
       if (deltaY > 8) event.preventDefault()
@@ -417,8 +426,27 @@ export default function ItineraryDetail() {
     dragDelta.current = 0
     sheetDragActive.current = false
     dragPointerId.current = null
+    if (bodyRef.current) bodyRef.current.style.overflow = ''
     setDragY(0)
     setIsDragging(false)
+  }
+
+  function unbindGestureListeners() {
+    if (!gestureListenersBound.current) return
+    window.removeEventListener('pointermove', stableGestureListeners.move)
+    window.removeEventListener('pointerup', stableGestureListeners.up)
+    window.removeEventListener('pointercancel', stableGestureListeners.cancel)
+    gestureListenersBound.current = false
+  }
+
+  function bindGestureListeners() {
+    if (gestureListenersBound.current) return
+    window.addEventListener('pointermove', stableGestureListeners.move, {
+      passive: false,
+    })
+    window.addEventListener('pointerup', stableGestureListeners.up)
+    window.addEventListener('pointercancel', stableGestureListeners.cancel)
+    gestureListenersBound.current = true
   }
 
   function onBodyScroll(event) {
@@ -426,17 +454,19 @@ export default function ItineraryDetail() {
     if (sheetState === 'peek' && scroller.scrollTop > 12) {
       expandSheet()
     }
-    setScrollAtTop(scroller.scrollTop <= 0)
+    setScrollAtTop(scroller.scrollTop <= 1)
     setStickyPinned(scroller.scrollTop > 48)
+  }
+
+  function isScrollAtTop() {
+    return (bodyRef.current?.scrollTop ?? 0) <= 1
   }
 
   function canStartSheetDrag(deltaX, deltaY) {
     if (Math.abs(deltaX) > Math.abs(deltaY)) return false
-    if (sheetState === 'peek' || sheetState === 'minimized') return true
-    if (sheetState === 'expanded') {
-      const atTop = (bodyRef.current?.scrollTop ?? 0) <= 0
-      return atTop && deltaY > 0
-    }
+    const state = sheetStateRef.current
+    if (state === 'peek' || state === 'minimized') return true
+    if (state === 'expanded') return isScrollAtTop() && deltaY > 0
     return false
   }
 
@@ -450,48 +480,19 @@ export default function ItineraryDetail() {
     didDrag.current = false
     sheetDragActive.current = false
     dragPointerId.current = event.pointerId
-  }
-
-  function onSheetPointerMove(event) {
-    if (dragStartY.current == null) return
-    if (
-      dragPointerId.current != null &&
-      event.pointerId !== dragPointerId.current
-    ) {
-      return
-    }
-
-    const deltaY = event.clientY - dragStartY.current
-    const deltaX = event.clientX - (dragStartX.current ?? event.clientX)
-
-    if (!sheetDragActive.current) {
-      if (Math.abs(deltaY) < 8 && Math.abs(deltaX) < 8) return
-      if (!canStartSheetDrag(deltaX, deltaY)) {
-        dragStartY.current = null
-        dragStartX.current = null
-        dragPointerId.current = null
-        return
-      }
-      sheetDragActive.current = true
-      didDrag.current = true
-      setIsDragging(true)
-      event.currentTarget.setPointerCapture?.(event.pointerId)
-      // Stop the scroll container from competing once sheet drag starts.
-      if (bodyRef.current) bodyRef.current.style.overflow = 'hidden'
-    }
-
-    const next = sheetState === 'expanded' ? Math.max(0, deltaY) : deltaY
-    if (Math.abs(deltaY) > 8) didDrag.current = true
-    dragDelta.current = next
-    setDragY(next)
+    bindGestureListeners()
   }
 
   function finishSheetGesture() {
-    if (dragStartY.current == null && !sheetDragActive.current) return
+    if (dragStartY.current == null && !sheetDragActive.current) {
+      unbindGestureListeners()
+      return
+    }
 
     const delta = dragDelta.current
     const dragged = didDrag.current
-    if (bodyRef.current) bodyRef.current.style.overflow = ''
+    const state = sheetStateRef.current
+    unbindGestureListeners()
     resetDrag()
     if (dragged) didDrag.current = true
 
@@ -501,39 +502,83 @@ export default function ItineraryDetail() {
     const expandThreshold = -40
     const restoreThreshold = -36
 
-    if (dragged && sheetState === 'expanded' && delta >= collapseThreshold) {
+    if (dragged && state === 'expanded' && delta >= collapseThreshold) {
       collapseSheet()
       return
     }
 
-    if (dragged && sheetState === 'peek' && delta >= minimizeThreshold) {
+    if (dragged && state === 'peek' && delta >= minimizeThreshold) {
       minimizeSheet()
       return
     }
 
-    if (dragged && sheetState === 'peek' && delta <= expandThreshold) {
+    if (dragged && state === 'peek' && delta <= expandThreshold) {
       expandSheet()
       return
     }
 
-    if (dragged && sheetState === 'minimized' && delta <= restoreThreshold) {
+    if (dragged && state === 'minimized' && delta <= restoreThreshold) {
       collapseSheet()
       return
     }
 
-    if (dragged && sheetState === 'minimized' && delta >= dismissThreshold) {
+    if (dragged && state === 'minimized' && delta >= dismissThreshold) {
       onClose()
     }
   }
 
-  function onSheetPointerUp() {
-    finishSheetGesture()
-  }
+  gestureApiRef.current = {
+    move(event) {
+      if (dragStartY.current == null) return
+      if (
+        dragPointerId.current != null &&
+        event.pointerId !== dragPointerId.current
+      ) {
+        return
+      }
 
-  function onSheetPointerCancel() {
-    if (bodyRef.current) bodyRef.current.style.overflow = ''
-    resetDrag()
-    didDrag.current = false
+      const deltaY = event.clientY - dragStartY.current
+      const deltaX = event.clientX - (dragStartX.current ?? event.clientX)
+      const state = sheetStateRef.current
+
+      if (!sheetDragActive.current) {
+        if (Math.abs(deltaY) < 8 && Math.abs(deltaX) < 8) return
+        if (!canStartSheetDrag(deltaX, deltaY)) {
+          unbindGestureListeners()
+          dragStartY.current = null
+          dragStartX.current = null
+          dragPointerId.current = null
+          return
+        }
+        sheetDragActive.current = true
+        didDrag.current = true
+        setIsDragging(true)
+        sheetRef.current?.setPointerCapture?.(event.pointerId)
+        if (bodyRef.current) bodyRef.current.style.overflow = 'hidden'
+        if (event.cancelable) event.preventDefault()
+      } else if (event.cancelable) {
+        event.preventDefault()
+      }
+
+      const next = state === 'expanded' ? Math.max(0, deltaY) : deltaY
+      if (Math.abs(deltaY) > 8) didDrag.current = true
+      dragDelta.current = next
+      setDragY(next)
+    },
+    up(event) {
+      if (
+        dragPointerId.current != null &&
+        event.pointerId !== dragPointerId.current
+      ) {
+        return
+      }
+      finishSheetGesture()
+    },
+    cancel() {
+      unbindGestureListeners()
+      resetDrag()
+      didDrag.current = false
+    },
   }
 
   function onSheetClickCapture(event) {
@@ -554,14 +599,59 @@ export default function ItineraryDetail() {
   }
 
   function onSheetWheel(event) {
-    if (sheetState === 'minimized' && event.deltaY < -8) {
-      collapseSheet()
+    if (sheetDragActive.current) {
+      event.preventDefault()
       return
     }
-    if (sheetState === 'peek' && event.deltaY > 8) {
-      expandSheet()
+
+    // Match pointer drag directions across trackpad/mouse wheel:
+    // swipe/scroll up (deltaY > 0) → expand/restore
+    // swipe/scroll down (deltaY < 0) → minimize/collapse
+    if (sheetState === 'minimized') {
+      if (event.deltaY > 8) {
+        event.preventDefault()
+        collapseSheet()
+      }
+      return
+    }
+
+    if (sheetState === 'peek') {
+      if (event.deltaY > 8) {
+        event.preventDefault()
+        expandSheet()
+      } else if (event.deltaY < -8) {
+        event.preventDefault()
+        minimizeSheet()
+      }
+      return
+    }
+
+    if (sheetState === 'expanded' && isScrollAtTop() && event.deltaY < -8) {
+      event.preventDefault()
+      collapseSheet()
     }
   }
+
+  function onSheetDragStart(event) {
+    if (event.target.closest('img, a')) event.preventDefault()
+  }
+
+  const onSheetWheelRef = useRef(onSheetWheel)
+  onSheetWheelRef.current = onSheetWheel
+
+  useEffect(() => {
+    const sheet = sheetRef.current
+    if (!sheet) return undefined
+
+    function onWheel(event) {
+      onSheetWheelRef.current(event)
+    }
+
+    sheet.addEventListener('wheel', onWheel, { passive: false })
+    return () => sheet.removeEventListener('wheel', onWheel)
+  }, [])
+
+  useEffect(() => () => unbindGestureListeners(), [])
 
   function renderThreadMessage(post, { nested = false } = {}) {
     const reactions = threadReactions[post.id] || []
@@ -766,12 +856,9 @@ export default function ItineraryDetail() {
         }`}
         aria-label="Itinerary details"
         style={sheetStyle}
-        onWheel={onSheetWheel}
         onPointerDown={onSheetPointerDown}
-        onPointerMove={onSheetPointerMove}
-        onPointerUp={onSheetPointerUp}
-        onPointerCancel={onSheetPointerCancel}
         onClickCapture={onSheetClickCapture}
+        onDragStart={onSheetDragStart}
       >
         <div
           className="itinerary-sheet__grabber-hit"

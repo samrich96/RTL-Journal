@@ -197,11 +197,20 @@
 .itinerary-sheet--dragging {
   transition: none !important;
   will-change: transform;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing !important;
 }
 
 .itinerary-sheet--dragging .itinerary-sheet__scroll {
   overflow: hidden;
   overscroll-behavior: none;
+  pointer-events: none;
+}
+
+.itinerary-sheet--dragging img {
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .itinerary-sheet__grabber {
@@ -228,9 +237,11 @@
   overscroll-behavior-y: none;
 }
 
-/* At scroll top, allow upward scroll only — downward goes to sheet collapse. */
+/* At scroll top, allow upward scroll only — downward goes to sheet collapse.
+   Applies on touch and pen; mouse drag uses window-level pointer listeners. */
 .itinerary-sheet--expanded.itinerary-sheet--at-top {
   touch-action: pan-up;
+  cursor: grab;
 }
 
 .itinerary-sheet--expanded.itinerary-sheet--at-top .itinerary-sheet__scroll {
@@ -240,6 +251,7 @@
 .itinerary-sheet--expanded.itinerary-sheet--dragging,
 .itinerary-sheet--expanded.itinerary-sheet--dragging .itinerary-sheet__scroll {
   touch-action: none;
+  cursor: grabbing;
 }
 
 .itinerary-sheet--peek,
