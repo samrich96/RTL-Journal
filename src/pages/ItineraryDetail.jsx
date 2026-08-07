@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import {
   BedDouble,
@@ -74,6 +74,7 @@ const EVENT_ICONS = {
   lodging: BedDouble,
   activity: Ticket,
   food: Utensils,
+  photoshoot: Camera,
 }
 
 const BUDGET_ICONS = {
@@ -140,6 +141,9 @@ export default function ItineraryDetail() {
   )
   const [reactionPickerId, setReactionPickerId] = useState(null)
   const [itinerarySelection, setItinerarySelection] = useState(1)
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+  const [descriptionClip, setDescriptionClip] = useState(undefined)
+  const descriptionRef = useRef(null)
   const previewTrackRef = useRef(null)
   const threadScrollRef = useRef(null)
 
@@ -206,6 +210,9 @@ export default function ItineraryDetail() {
     if (folder.id === 'outfits') {
       setOutfitDay(1)
       setOutfitsOpen(true)
+    }
+    if (folder.id === 'trip-photos') {
+      setPhotosOpen(true)
     }
   }
 
@@ -344,6 +351,85 @@ export default function ItineraryDetail() {
       document.body.style.overflow = previous
     }
   }, [])
+
+  useLayoutEffect(() => {
+    if (descriptionExpanded) return undefined
+    if (sheetState !== 'expanded' || tab !== 'Overview') return undefined
+
+    const root = descriptionRef.current
+    if (!root) return undefined
+
+    function measureClip() {
+      const full = trip.descriptionFull
+      const width = root.clientWidth
+      if (!width) return
+
+      const styles = getComputedStyle(root)
+      const lineHeight =
+        parseFloat(styles.lineHeight) || parseFloat(styles.fontSize) * 1.45
+      const maxHeight = lineHeight * 2 + 1
+
+      const probe = document.createElement('p')
+      probe.style.cssText = [
+        'position:absolute',
+        'left:0',
+        'top:0',
+        'visibility:hidden',
+        'pointer-events:none',
+        `width:${width}px`,
+        'margin:0',
+        `font:${styles.font}`,
+        `line-height:${styles.lineHeight}`,
+        `letter-spacing:${styles.letterSpacing}`,
+      ].join(';')
+      document.body.appendChild(probe)
+
+      function fits(slice) {
+        probe.replaceChildren()
+        probe.appendChild(document.createTextNode(`${slice}... `))
+        const more = document.createElement('span')
+        more.style.cssText = 'font-size:0.875rem;font-weight:600'
+        more.textContent = 'See more'
+        probe.appendChild(more)
+        return probe.scrollHeight <= maxHeight
+      }
+
+      probe.textContent = full
+      if (probe.scrollHeight <= maxHeight) {
+        setDescriptionClip(null)
+        probe.remove()
+        return
+      }
+
+      let lo = 0
+      let hi = full.length
+      let best = 0
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1
+        const slice = full.slice(0, mid).trimEnd()
+        if (fits(slice)) {
+          best = mid
+          lo = mid + 1
+        } else {
+          hi = mid - 1
+        }
+      }
+
+      let clipped = full.slice(0, best).trimEnd()
+      const lastSpace = clipped.lastIndexOf(' ')
+      if (lastSpace > Math.floor(clipped.length * 0.55)) {
+        clipped = clipped.slice(0, lastSpace)
+      }
+
+      setDescriptionClip(clipped)
+      probe.remove()
+    }
+
+    measureClip()
+    const observer = new ResizeObserver(() => measureClip())
+    observer.observe(root)
+    return () => observer.disconnect()
+  }, [descriptionExpanded, sheetState, tab, trip.descriptionFull])
 
   useEffect(() => {
     if (
@@ -1034,76 +1120,99 @@ export default function ItineraryDetail() {
                 {trip.lastUpdated}
               </button>
 
-              <p>{trip.descriptionFull}</p>
-
-              <section className="itinerary-sheet__trip-photos">
-                    <h2>Trip Photos</h2>
-                    <button
-                      type="button"
-                      className="itinerary-sheet__photo-collage"
-                      onClick={() => setPhotosOpen(true)}
-                      aria-label="Open trip photos"
-                    >
-                      <img
-                        className="itinerary-sheet__photo-collage-large"
-                        src={trip.tripPhotos.large}
-                        alt=""
-                      />
-                      <div className="itinerary-sheet__photo-collage-stack">
-                        <img src={trip.tripPhotos.topRight} alt="" />
-                        <span className="itinerary-sheet__photo-collage-more">
-                          <img src={trip.tripPhotos.bottomRight} alt="" />
-                          <span>+ {trip.tripPhotoCount}</span>
-                        </span>
-                      </div>
-                    </button>
-                  </section>
-
-                  <section className="itinerary-sheet__daily-summary">
-                    <div className="itinerary-sheet__daily-summary-head">
-                      <p>{trip.dateRange}</p>
-                      <span>
-                        <Map size={14} strokeWidth={1.75} aria-hidden />
-                        {trip.eventCount} Events
-                      </span>
-                    </div>
-                    <div className="itinerary-sheet__daily-summary-body">
-                      <div
-                        className="itinerary-sheet__daily-timeline"
-                        aria-hidden
+              <section className="itinerary-sheet__description">
+                <h2>Description</h2>
+                <div
+                  ref={descriptionRef}
+                  className={`itinerary-sheet__description-body${
+                    descriptionExpanded
+                      ? ' itinerary-sheet__description-body--expanded'
+                      : ''
+                  }`}
+                >
+                  {descriptionExpanded ? (
+                    <>
+                      <p>{trip.descriptionFull}</p>
+                      <button
+                        type="button"
+                        className="itinerary-sheet__description-toggle itinerary-sheet__description-toggle--below"
+                        onClick={() => setDescriptionExpanded(false)}
                       >
-                        <span className="itinerary-sheet__daily-line" />
-                        {trip.daySummaries.map((day) => (
-                          <span
-                            key={day.day}
-                            className="itinerary-sheet__daily-dot"
-                          />
-                        ))}
-                      </div>
-                      <ul className="itinerary-sheet__daily-cards">
-                        {trip.daySummaries.map((day) => (
-                          <li key={day.day}>
-                            <img src={day.image} alt="" />
-                            <div>
-                              <div className="itinerary-sheet__daily-card-meta">
-                                <span>DAY {day.day}</span>
-                                <span>{day.events} Events</span>
-                              </div>
-                              <strong>{day.title}</strong>
-                              <span className="itinerary-sheet__daily-card-date">
-                                <Calendar
-                                  size={14}
-                                  strokeWidth={1.75}
-                                  aria-hidden
-                                />
-                                {day.dateLabel}
-                              </span>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </section>
+                        Show less
+                      </button>
+                    </>
+                  ) : typeof descriptionClip === 'string' ? (
+                    <p>
+                      {descriptionClip}
+                      {'... '}
+                      <button
+                        type="button"
+                        className="itinerary-sheet__description-toggle"
+                        onClick={() => setDescriptionExpanded(true)}
+                      >
+                        See more
+                      </button>
+                    </p>
+                  ) : (
+                    <p
+                      className={
+                        descriptionClip === undefined
+                          ? 'itinerary-sheet__description-pending'
+                          : undefined
+                      }
+                    >
+                      {trip.descriptionFull}
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <section className="itinerary-sheet__daily-summary">
+                <div className="itinerary-sheet__daily-summary-head">
+                  <p>{trip.dateRange}</p>
+                  <span>
+                    <Map size={16} strokeWidth={1.75} aria-hidden />
+                    {trip.eventCount} Events
+                  </span>
+                </div>
+                <div className="itinerary-sheet__daily-summary-body">
+                  <div className="itinerary-sheet__daily-timeline">
+                    <span className="itinerary-sheet__daily-line" aria-hidden />
+                    {trip.daySummaries.map((day) => (
+                      <button
+                        key={day.day}
+                        type="button"
+                        className="itinerary-sheet__daily-dot"
+                        aria-label={`Day ${day.day}`}
+                      >
+                        {day.day}
+                      </button>
+                    ))}
+                  </div>
+                  <ul className="itinerary-sheet__daily-cards">
+                    {trip.daySummaries.map((day) => (
+                      <li key={day.day}>
+                        <img src={day.image} alt="" />
+                        <div>
+                          <div className="itinerary-sheet__daily-card-meta">
+                            <span>DAY {day.day}</span>
+                            <span>{day.events} Events</span>
+                          </div>
+                          <strong>{day.title}</strong>
+                          <span className="itinerary-sheet__daily-card-date">
+                            <Calendar
+                              size={14}
+                              strokeWidth={1.75}
+                              aria-hidden
+                            />
+                            {day.dateLabel}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
             </div>
           ) : null}
 
@@ -1183,7 +1292,7 @@ export default function ItineraryDetail() {
                   <div className="itinerary-day-detail__meta">
                     <p>{selectedItineraryDay.fullDate}</p>
                     <span>
-                      <Map size={14} strokeWidth={1.75} aria-hidden />
+                      <Map size={16} strokeWidth={1.75} aria-hidden />
                       {selectedItineraryDay.eventCount} Events
                     </span>
                   </div>
@@ -1203,8 +1312,8 @@ export default function ItineraryDetail() {
                               style={{ background: style.gradient }}
                             >
                               <Icon
-                                size={10}
-                                strokeWidth={2.4}
+                                size={14}
+                                strokeWidth={2.2}
                                 color="#fffefd"
                               />
                             </span>
@@ -1442,12 +1551,16 @@ export default function ItineraryDetail() {
 
                           {folder.preview === 'papers' ||
                           folder.preview === 'discussion' ||
-                          folder.preview === 'public' ? (
+                          folder.preview === 'public' ||
+                          folder.preview === 'photos' ? (
                             <>
                               <span className="itinerary-extras__paper itinerary-extras__paper--a">
                                 {folder.preview === 'discussion' ||
                                 folder.preview === 'public' ? (
                                   <MessageCircle size={14} strokeWidth={1.75} />
+                                ) : null}
+                                {folder.preview === 'photos' ? (
+                                  <Camera size={14} strokeWidth={1.75} />
                                 ) : null}
                               </span>
                               <span className="itinerary-extras__paper itinerary-extras__paper--b">
@@ -1455,11 +1568,17 @@ export default function ItineraryDetail() {
                                 folder.preview === 'public' ? (
                                   <MessageCircle size={14} strokeWidth={1.75} />
                                 ) : null}
+                                {folder.preview === 'photos' ? (
+                                  <Camera size={14} strokeWidth={1.75} />
+                                ) : null}
                               </span>
                               <span className="itinerary-extras__paper itinerary-extras__paper--c">
                                 {folder.preview === 'discussion' ||
                                 folder.preview === 'public' ? (
                                   <MessageCircle size={14} strokeWidth={1.75} />
+                                ) : null}
+                                {folder.preview === 'photos' ? (
+                                  <Camera size={14} strokeWidth={1.75} />
                                 ) : null}
                               </span>
                             </>
@@ -1485,7 +1604,11 @@ export default function ItineraryDetail() {
                       </span>
                       <span className="itinerary-extras__folder-copy">
                         <strong>{folder.title}</strong>
-                        <span>{folder.meta}</span>
+                        <span>
+                          {folder.id === 'trip-photos'
+                            ? `${trip.tripPhotoCount} photos`
+                            : folder.meta}
+                        </span>
                       </span>
                       {folder.locked ? (
                         <span
@@ -1688,7 +1811,7 @@ export default function ItineraryDetail() {
               type="button"
               className="itinerary-photos__back"
               onClick={closePhotos}
-              aria-label="Back to overview"
+              aria-label="Back to extras"
             >
               <ChevronLeft size={22} strokeWidth={2.25} />
             </button>
