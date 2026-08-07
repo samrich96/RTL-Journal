@@ -224,8 +224,21 @@
   background: #1f3518;
 }
 
+.itinerary-sheet--peek,
+.itinerary-sheet--minimized {
+  touch-action: none;
+  cursor: grab;
+}
+
+.itinerary-sheet--peek.itinerary-sheet--dragging,
+.itinerary-sheet--minimized.itinerary-sheet--dragging {
+  cursor: grabbing;
+}
+
 .itinerary-sheet--peek .itinerary-sheet__scroll {
   height: 100%;
+  overflow: hidden;
+  touch-action: none;
 }
 
 .itinerary-sheet--minimized .itinerary-sheet__scroll {
@@ -233,6 +246,7 @@
   height: 100%;
   overflow: hidden;
   background: transparent;
+  touch-action: none;
 }
 
 .itinerary-sheet--minimized .itinerary-sheet__hero {

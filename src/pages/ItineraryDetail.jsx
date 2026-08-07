@@ -97,8 +97,11 @@ export default function ItineraryDetail() {
   const sheetRef = useRef(null)
   const bodyRef = useRef(null)
   const dragStartY = useRef(null)
+  const dragStartX = useRef(null)
   const dragDelta = useRef(0)
   const didDrag = useRef(false)
+  const sheetDragActive = useRef(false)
+  const dragPointerId = useRef(null)
   const [sheetState, setSheetState] = useState('peek')
   const [dragY, setDragY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -384,7 +387,10 @@ export default function ItineraryDetail() {
 
   function resetDrag() {
     dragStartY.current = null
+    dragStartX.current = null
     dragDelta.current = 0
+    sheetDragActive.current = false
+    dragPointerId.current = null
     setDragY(0)
     setIsDragging(false)
   }
@@ -397,37 +403,67 @@ export default function ItineraryDetail() {
     setStickyPinned(scroller.scrollTop > 48)
   }
 
-  function onGrabberPointerDown(event) {
-    if (event.button != null && event.button !== 0) return
-    dragStartY.current = event.clientY
-    dragDelta.current = 0
-    didDrag.current = false
-    setIsDragging(true)
-    event.currentTarget.setPointerCapture?.(event.pointerId)
+  function canStartSheetDrag(deltaX, deltaY) {
+    if (Math.abs(deltaX) > Math.abs(deltaY)) return false
+    if (sheetState === 'peek' || sheetState === 'minimized') return true
+    if (sheetState === 'expanded') {
+      const atTop = (bodyRef.current?.scrollTop ?? 0) <= 0
+      return atTop && deltaY > 0
+    }
+    return false
   }
 
-  function onGrabberPointerMove(event) {
+  function onSheetPointerDown(event) {
+    if (event.button != null && event.button !== 0) return
+    if (event.target.closest('input, textarea, select')) return
+
+    dragStartY.current = event.clientY
+    dragStartX.current = event.clientX
+    dragDelta.current = 0
+    didDrag.current = false
+    sheetDragActive.current = false
+    dragPointerId.current = event.pointerId
+  }
+
+  function onSheetPointerMove(event) {
     if (dragStartY.current == null) return
-    const delta = event.clientY - dragStartY.current
-
-    // Expanded: only drag down. Peek/minimized: both directions.
-    const next =
-      sheetState === 'expanded' ? Math.max(0, delta) : delta
-
-    if (Math.abs(delta) > 10) {
-      didDrag.current = true
+    if (
+      dragPointerId.current != null &&
+      event.pointerId !== dragPointerId.current
+    ) {
+      return
     }
 
+    const deltaY = event.clientY - dragStartY.current
+    const deltaX = event.clientX - (dragStartX.current ?? event.clientX)
+
+    if (!sheetDragActive.current) {
+      if (Math.abs(deltaY) < 10 && Math.abs(deltaX) < 10) return
+      if (!canStartSheetDrag(deltaX, deltaY)) {
+        dragStartY.current = null
+        dragStartX.current = null
+        dragPointerId.current = null
+        return
+      }
+      sheetDragActive.current = true
+      didDrag.current = true
+      setIsDragging(true)
+      event.currentTarget.setPointerCapture?.(event.pointerId)
+    }
+
+    const next = sheetState === 'expanded' ? Math.max(0, deltaY) : deltaY
+    if (Math.abs(deltaY) > 10) didDrag.current = true
     dragDelta.current = next
     setDragY(next)
   }
 
-  function finishGrabberGesture() {
-    if (dragStartY.current == null) return
+  function finishSheetGesture() {
+    if (dragStartY.current == null && !sheetDragActive.current) return
 
     const delta = dragDelta.current
     const dragged = didDrag.current
     resetDrag()
+    if (dragged) didDrag.current = true
 
     const dismissThreshold = 72
     const collapseThreshold = 56
@@ -460,12 +496,19 @@ export default function ItineraryDetail() {
     }
   }
 
-  function onGrabberPointerUp() {
-    finishGrabberGesture()
+  function onSheetPointerUp() {
+    finishSheetGesture()
   }
 
-  function onGrabberPointerCancel() {
+  function onSheetPointerCancel() {
     resetDrag()
+    didDrag.current = false
+  }
+
+  function onSheetClickCapture(event) {
+    if (!didDrag.current) return
+    event.preventDefault()
+    event.stopPropagation()
     didDrag.current = false
   }
 
@@ -689,13 +732,14 @@ export default function ItineraryDetail() {
         aria-label="Itinerary details"
         style={sheetStyle}
         onWheel={onSheetWheel}
+        onPointerDown={onSheetPointerDown}
+        onPointerMove={onSheetPointerMove}
+        onPointerUp={onSheetPointerUp}
+        onPointerCancel={onSheetPointerCancel}
+        onClickCapture={onSheetClickCapture}
       >
         <div
           className="itinerary-sheet__grabber-hit"
-          onPointerDown={onGrabberPointerDown}
-          onPointerMove={onGrabberPointerMove}
-          onPointerUp={onGrabberPointerUp}
-          onPointerCancel={onGrabberPointerCancel}
           onClick={onGrabberClick}
           role="slider"
           aria-label="Resize itinerary card"
