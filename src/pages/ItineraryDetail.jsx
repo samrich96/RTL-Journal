@@ -10,12 +10,15 @@ import {
   CircleDollarSign,
   Clock,
   CloudSun,
+  Flag,
   Heart,
+  Link2,
   Lock,
   Map,
   MessageCircle,
   Minus,
   MoreHorizontal,
+  MoreVertical,
   Plane,
   Play,
   Plus,
@@ -25,6 +28,7 @@ import {
   Star,
   Ticket,
   Utensils,
+  X,
 } from 'lucide-react'
 import BudgetDonut from '../components/BudgetDonut'
 import ItineraryMap from '../components/ItineraryMap'
@@ -35,6 +39,7 @@ import {
   SWISS_ITINERARY_ID,
   switzerlandItinerary,
 } from '../data/switzerlandItinerary'
+import { paths } from '../routes/paths'
 import './ItineraryDetail.css'
 
 const TABS = ['Overview', 'Itinerary', 'Budget', 'Extras']
@@ -117,7 +122,9 @@ export default function ItineraryDetail() {
   const [scrollAtTop, setScrollAtTop] = useState(true)
   const [eventFilter, setEventFilter] = useState('all')
   const [tab, setTab] = useState('Overview')
-  const [expandedCopy, setExpandedCopy] = useState(false)
+  const [wishlisted, setWishlisted] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const [expandedBudget, setExpandedBudget] = useState(null)
   const [selectedBudget, setSelectedBudget] = useState(null)
   const [stickyPinned, setStickyPinned] = useState(false)
@@ -135,6 +142,36 @@ export default function ItineraryDetail() {
   const [itinerarySelection, setItinerarySelection] = useState(1)
   const previewTrackRef = useRef(null)
   const threadScrollRef = useRef(null)
+
+  const itineraryShareUrl = useMemo(() => {
+    const path = paths.itinerary(itineraryId || SWISS_ITINERARY_ID)
+    if (typeof window === 'undefined') return `https://rtljournal.app${path}`
+    return `${window.location.origin}${path}`
+  }, [itineraryId])
+
+  const itineraryShareDisplay = useMemo(() => {
+    try {
+      const url = new URL(itineraryShareUrl)
+      return `${url.host}${url.pathname}`
+    } catch {
+      return itineraryShareUrl
+    }
+  }, [itineraryShareUrl])
+
+  async function copyItineraryLink() {
+    try {
+      await navigator.clipboard.writeText(itineraryShareUrl)
+      setLinkCopied(true)
+      window.setTimeout(() => setLinkCopied(false), 1800)
+    } catch {
+      setLinkCopied(false)
+    }
+  }
+
+  function closeShare() {
+    setShareOpen(false)
+    setLinkCopied(false)
+  }
 
   const flatPhotos = useMemo(
     () =>
@@ -408,12 +445,10 @@ export default function ItineraryDetail() {
 
   function collapseSheet() {
     setSheetState('peek')
-    setExpandedCopy(false)
   }
 
   function minimizeSheet() {
     setSheetState('minimized')
-    setExpandedCopy(false)
     if (bodyRef.current) {
       bodyRef.current.scrollTop = 0
       setStickyPinned(false)
@@ -801,17 +836,6 @@ export default function ItineraryDetail() {
           >
             <ChevronLeft size={20} strokeWidth={2} />
           </button>
-          <div className="itinerary-detail__actions">
-            <button type="button" className="itinerary-detail__icon-btn" aria-label="Share">
-              <Share size={16} strokeWidth={1.75} />
-            </button>
-            <button type="button" className="itinerary-detail__icon-btn" aria-label="Save">
-              <Heart size={16} strokeWidth={1.75} />
-            </button>
-            <button type="button" className="itinerary-detail__icon-btn" aria-label="More">
-              <MoreHorizontal size={16} strokeWidth={1.75} />
-            </button>
-          </div>
         </div>
 
         <div className="itinerary-detail__filters" role="tablist" aria-label="Map event filters">
@@ -955,38 +979,64 @@ export default function ItineraryDetail() {
                 </button>
               ))}
             </div>
+
+            {sheetState === 'peek' ||
+            (sheetState === 'expanded' && scrollAtTop) ? (
+              <div
+                className="itinerary-sheet__quick-actions"
+                role="group"
+                aria-label="Itinerary actions"
+              >
+                <button
+                  type="button"
+                  className="itinerary-sheet__quick-action"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setShareOpen(true)
+                  }}
+                >
+                  <span className="itinerary-sheet__quick-action-icon" aria-hidden>
+                    <Share size={16} strokeWidth={1.85} />
+                  </span>
+                  <span>Share</span>
+                </button>
+                <button
+                  type="button"
+                  className={`itinerary-sheet__quick-action${
+                    wishlisted ? ' itinerary-sheet__quick-action--active' : ''
+                  }`}
+                  aria-pressed={wishlisted}
+                  onClick={() => setWishlisted((current) => !current)}
+                >
+                  <span className="itinerary-sheet__quick-action-icon" aria-hidden>
+                    <Heart
+                      size={16}
+                      strokeWidth={1.85}
+                      fill={wishlisted ? 'currentColor' : 'none'}
+                    />
+                  </span>
+                  <span>My Wishlist</span>
+                </button>
+                <button type="button" className="itinerary-sheet__quick-action">
+                  <span className="itinerary-sheet__quick-action-icon" aria-hidden>
+                    <MoreVertical size={16} strokeWidth={1.85} />
+                  </span>
+                  <span>More</span>
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <div className="itinerary-sheet__body">
-          {tab === 'Overview' ? (
+          {sheetState === 'expanded' && tab === 'Overview' ? (
             <div className="itinerary-sheet__panel itinerary-sheet__panel--overview">
-              {sheetState === 'expanded' ? (
-                <button type="button" className="itinerary-sheet__updated">
-                  {trip.lastUpdated}
-                </button>
-              ) : null}
+              <button type="button" className="itinerary-sheet__updated">
+                {trip.lastUpdated}
+              </button>
 
-              <p>
-                {expandedCopy || sheetState === 'expanded'
-                  ? trip.descriptionFull
-                  : `${trip.description.slice(0, 118)}... `}
-                {sheetState === 'peek' && !expandedCopy ? (
-                  <button
-                    type="button"
-                    className="itinerary-sheet__more"
-                    onClick={() => {
-                      setExpandedCopy(true)
-                      expandSheet()
-                    }}
-                  >
-                    See More
-                  </button>
-                ) : null}
-              </p>
+              <p>{trip.descriptionFull}</p>
 
-              {sheetState === 'expanded' ? (
-                <>
-                  <section className="itinerary-sheet__trip-photos">
+              <section className="itinerary-sheet__trip-photos">
                     <h2>Trip Photos</h2>
                     <button
                       type="button"
@@ -1054,12 +1104,10 @@ export default function ItineraryDetail() {
                       </ul>
                     </div>
                   </section>
-                </>
-              ) : null}
             </div>
           ) : null}
 
-          {tab === 'Itinerary' ? (
+          {sheetState === 'expanded' && tab === 'Itinerary' ? (
             <div className="itinerary-sheet__panel itinerary-sheet__panel--itinerary">
               <div
                 className="itinerary-day-slider"
@@ -1267,7 +1315,7 @@ export default function ItineraryDetail() {
             </div>
           ) : null}
 
-          {tab === 'Budget' ? (
+          {sheetState === 'expanded' && tab === 'Budget' ? (
             <div className="itinerary-sheet__panel itinerary-sheet__panel--budget">
               <div className="itinerary-sheet__budget-intro">
                 <h2>Expense Breakdown</h2>
@@ -1351,7 +1399,7 @@ export default function ItineraryDetail() {
             </div>
           ) : null}
 
-          {tab === 'Extras' ? (
+          {sheetState === 'expanded' && tab === 'Extras' ? (
             <div className="itinerary-sheet__panel itinerary-sheet__panel--extras">
               <p className="itinerary-extras__caption">{trip.extrasCaption}</p>
 
@@ -1799,6 +1847,113 @@ export default function ItineraryDetail() {
                   }}
                 />
               ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {shareOpen ? (
+        <div
+          className="itinerary-share"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="itinerary-share-title"
+        >
+          <button
+            type="button"
+            className="itinerary-share__backdrop"
+            aria-label="Close"
+            onClick={closeShare}
+          />
+          <div className="itinerary-share__panel">
+            <header className="itinerary-share__header">
+              <h2 id="itinerary-share-title">Share this itinerary</h2>
+              <button
+                type="button"
+                className="itinerary-share__close"
+                aria-label="Close share"
+                onClick={closeShare}
+              >
+                <X size={18} strokeWidth={2} />
+              </button>
+            </header>
+
+            <div className="itinerary-share__preview" aria-hidden>
+              <div className="itinerary-share__card">
+                <div className="itinerary-share__card-hero">
+                  <img src={trip.hero || trip.coverFallback} alt="" />
+                </div>
+                <div className="itinerary-share__card-body">
+                  <div className="itinerary-share__card-avatars">
+                    {trip.avatars.map((avatar) => (
+                      <span key={avatar.src}>
+                        <img src={avatar.src} alt="" />
+                        {avatar.badge === 'star' ? (
+                          <em>
+                            <Star size={7} fill="currentColor" strokeWidth={0} />
+                          </em>
+                        ) : null}
+                      </span>
+                    ))}
+                  </div>
+                  <strong>{trip.title}</strong>
+                  <div className="itinerary-share__card-meta">
+                    <img src={trip.flag} alt="" />
+                    <span>
+                      <CircleDollarSign size={12} strokeWidth={1.75} />
+                      {trip.price}
+                    </span>
+                    <span>
+                      <Clock size={12} strokeWidth={1.75} />
+                      {trip.duration}
+                    </span>
+                  </div>
+                  <div className="itinerary-share__card-tabs">
+                    {TABS.map((item) => (
+                      <span
+                        key={item}
+                        className={
+                          item === 'Overview'
+                            ? 'itinerary-share__card-tab itinerary-share__card-tab--active'
+                            : 'itinerary-share__card-tab'
+                        }
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="itinerary-share__link-row">
+              <Link2 size={16} strokeWidth={2} aria-hidden />
+              <span className="itinerary-share__link-text" title={itineraryShareUrl}>
+                {itineraryShareDisplay}
+              </span>
+              <button
+                type="button"
+                className="itinerary-share__copy"
+                onClick={copyItineraryLink}
+              >
+                {linkCopied ? 'Copied' : 'Copy link'}
+              </button>
+            </div>
+
+            <div className="itinerary-share__actions">
+              <button type="button" className="itinerary-share__action">
+                <span className="itinerary-share__circle-icon" aria-hidden>
+                  <Star size={12} strokeWidth={0} fill="white" />
+                </span>
+                Request “My Circle” invite
+              </button>
+              <button
+                type="button"
+                className="itinerary-share__action itinerary-share__action--danger"
+              >
+                <Flag size={18} strokeWidth={1.75} />
+                Report/Block
+              </button>
             </div>
           </div>
         </div>

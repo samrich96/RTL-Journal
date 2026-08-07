@@ -411,6 +411,229 @@
   gap: 28px;
 }
 
+.profile-share {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+}
+
+.profile-share__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(43, 43, 43, 0.36);
+  cursor: pointer;
+}
+
+.profile-share__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  padding: 18px 18px 20px;
+  border-radius: 28px 28px 24px 24px;
+  background: #fff;
+  box-shadow: 0 -8px 36px rgba(43, 43, 43, 0.16);
+}
+
+.profile-share__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.profile-share__header h2 {
+  margin: 0;
+  color: #2b2b2b;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.profile-share__close {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #717171;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.profile-share__preview {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(43, 43, 43, 0.08);
+  background: #f7f7f7;
+}
+
+.profile-share__cover {
+  display: block;
+  width: 100%;
+  height: 112px;
+  object-fit: cover;
+}
+
+.profile-share__preview-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'avatar identity'
+    'counts counts';
+  gap: 10px 12px;
+  padding: 0 14px 14px;
+  margin-top: -28px;
+}
+
+.profile-share__avatar {
+  grid-area: avatar;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  object-fit: cover;
+  background: #fff;
+}
+
+.profile-share__identity {
+  grid-area: identity;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 30px;
+}
+
+.profile-share__identity strong {
+  color: #2b2b2b;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.profile-share__identity span {
+  color: #717171;
+  font-size: 0.88rem;
+}
+
+.profile-share__counts {
+  grid-area: counts;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.profile-share__counts div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(43, 43, 43, 0.04);
+}
+
+.profile-share__counts strong {
+  color: #2b2b2b;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.profile-share__counts span {
+  color: #717171;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.profile-share__link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid rgba(43, 43, 43, 0.12);
+  border-radius: 999px;
+  color: #555;
+  background: #fafafa;
+}
+
+.profile-share__link-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+.profile-share__copy {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: #2b2b2b;
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-share__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.profile-share__action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 8px;
+  background: transparent;
+  color: #4e4b4b;
+  font-size: 0.98rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-share__action:hover {
+  background: rgba(43, 43, 43, 0.04);
+}
+
+.profile-share__action--danger {
+  color: #c0392b;
+}
+
+.profile-share__circle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 100px;
+  background: #46ae24;
+}
+
 .profile-sheet {
   position: fixed;
   inset: 0;
@@ -482,7 +705,7 @@
   width: 24px;
   height: 24px;
   border-radius: 100px;
-  background: #5a5a3a;
+  background: #46ae24;
 }
 
 .profile-sheet__check {
@@ -598,5 +821,13 @@
 
   .profile-sheet__panel {
     border-radius: 28px;
+  }
+
+  .profile-share {
+    align-items: center;
+  }
+
+  .profile-share__panel {
+    border-radius: 24px;
   }
 }

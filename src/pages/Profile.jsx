@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import {
   ChevronLeft,
@@ -6,6 +6,7 @@ import {
   FileText,
   Flag,
   Heart,
+  Link2,
   LogOut,
   Settings,
   Share,
@@ -66,9 +67,42 @@ export default function Profile() {
   const isAllView = pathname.startsWith(paths.profileItineraries)
   const [segment, setSegment] = useState(isAllView ? 'all' : 'trips')
   const [shareOpen, setShareOpen] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState({ myTrips: true, shared: true })
   const [draftFilters, setDraftFilters] = useState(filters)
+
+  const profileShareUrl = useMemo(() => {
+    const handle = profileUser.handle.replace(/^@/, '')
+    if (typeof window === 'undefined') {
+      return `https://rtljournal.app${paths.profile}/${handle}`
+    }
+    return `${window.location.origin}${paths.profile}/${handle}`
+  }, [])
+
+  const profileShareDisplay = useMemo(() => {
+    try {
+      const url = new URL(profileShareUrl)
+      return `${url.host}${url.pathname}`
+    } catch {
+      return profileShareUrl
+    }
+  }, [profileShareUrl])
+
+  async function copyProfileLink() {
+    try {
+      await navigator.clipboard.writeText(profileShareUrl)
+      setLinkCopied(true)
+      window.setTimeout(() => setLinkCopied(false), 1800)
+    } catch {
+      setLinkCopied(false)
+    }
+  }
+
+  function closeShare() {
+    setShareOpen(false)
+    setLinkCopied(false)
+  }
 
   const visibleItineraries = profileItineraries.filter(
     (trip) => filters[trip.filter],
@@ -335,36 +369,86 @@ export default function Profile() {
       </div>
       {shareOpen ? (
         <div
-          className="profile-sheet"
+          className="profile-share"
           role="dialog"
           aria-modal="true"
-          aria-label="Profile actions"
+          aria-labelledby="profile-share-title"
         >
           <button
             type="button"
-            className="profile-sheet__backdrop"
+            className="profile-share__backdrop"
             aria-label="Close"
-            onClick={() => setShareOpen(false)}
+            onClick={closeShare}
           />
-          <div className="profile-sheet__panel profile-sheet__panel--actions">
-            <div className="profile-sheet__grabber" />
-            <div className="profile-sheet__list">
-              <button type="button" className="profile-sheet__row">
-                <SquareArrowOutUpRight size={20} strokeWidth={1.75} />
-                Share profile
+          <div className="profile-share__panel">
+            <header className="profile-share__header">
+              <h2 id="profile-share-title">Share this profile</h2>
+              <button
+                type="button"
+                className="profile-share__close"
+                aria-label="Close share"
+                onClick={closeShare}
+              >
+                <X size={18} strokeWidth={2} />
               </button>
-              <button type="button" className="profile-sheet__row">
-                <span className="profile-sheet__circle-icon" aria-hidden>
+            </header>
+
+            <div className="profile-share__preview" aria-hidden>
+              <img
+                className="profile-share__cover"
+                src={profileUser.cover}
+                alt=""
+              />
+              <div className="profile-share__preview-body">
+                <img
+                  className="profile-share__avatar"
+                  src={profileUser.avatar}
+                  alt=""
+                />
+                <div className="profile-share__identity">
+                  <strong>{profileUser.name}</strong>
+                  <span>{profileUser.handle}</span>
+                </div>
+                <div className="profile-share__counts">
+                  <div>
+                    <strong>{profileUser.itinerariesCount}</strong>
+                    <span>Itineraries</span>
+                  </div>
+                  <div>
+                    <strong>{profileUser.countriesCount}</strong>
+                    <span>Countries</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="profile-share__link-row">
+              <Link2 size={16} strokeWidth={2} aria-hidden />
+              <span className="profile-share__link-text" title={profileShareUrl}>
+                {profileShareDisplay}
+              </span>
+              <button
+                type="button"
+                className="profile-share__copy"
+                onClick={copyProfileLink}
+              >
+                {linkCopied ? 'Copied' : 'Copy link'}
+              </button>
+            </div>
+
+            <div className="profile-share__actions">
+              <button type="button" className="profile-share__action">
+                <span className="profile-share__circle-icon" aria-hidden>
                   <Star size={12} strokeWidth={0} fill="white" />
                 </span>
                 Request “My Circle” invite
               </button>
               <button
                 type="button"
-                className="profile-sheet__row profile-sheet__row--danger"
+                className="profile-share__action profile-share__action--danger"
               >
-                <Flag size={20} strokeWidth={1.75} />
-                Report / Block
+                <Flag size={18} strokeWidth={1.75} />
+                Report/Block
               </button>
             </div>
           </div>
