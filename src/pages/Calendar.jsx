@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 import {
   ChevronDown,
   ChevronLeft,
@@ -9,9 +10,9 @@ import {
   Star,
   Users,
 } from 'lucide-react'
-import Header from '../components/Header'
-import TabBar from '../components/TabBar'
 import FilterSheet from '../components/FilterSheet'
+import { useOpenItinerary } from '../hooks/useOpenItinerary'
+import { paths } from '../routes/paths'
 import { FILTERS, calendarTrips } from '../data/calendarTrips'
 import './Calendar.css'
 
@@ -129,7 +130,9 @@ function assignEventLanes(segments) {
   return withLanes
 }
 
-export default function Calendar({ active = 'calendar', onNavigate, onOpenItinerary }) {
+export default function Calendar() {
+  const navigate = useNavigate()
+  const onOpenItinerary = useOpenItinerary()
   const today = useMemo(() => new Date(), [])
   const [year, setYear] = useState(2026)
   const [month, setMonth] = useState(4)
@@ -210,7 +213,6 @@ export default function Calendar({ active = 'calendar', onNavigate, onOpenItiner
 
   return (
     <div className="calendar-page">
-      <Header active={active} onNavigate={onNavigate} />
       <div className="calendar-page__shell">
         <main className="calendar-page__main">
           <div className="calendar-page__heading">
@@ -302,7 +304,7 @@ export default function Calendar({ active = 'calendar', onNavigate, onOpenItiner
                 <button
                   type="button"
                   className="calendar-toolbar__new"
-                  onClick={() => onNavigate?.('plan')}
+                  onClick={() => navigate(paths.plan)}
                 >
                   <Plus size={16} strokeWidth={2} />
                   New trip
@@ -483,7 +485,6 @@ export default function Calendar({ active = 'calendar', onNavigate, onOpenItiner
           </section>
         </main>
       </div>
-      <TabBar active={active} onNavigate={onNavigate} />
 
       <FilterSheet
         open={sheetOpen}

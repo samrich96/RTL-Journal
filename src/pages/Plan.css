@@ -1,8 +1,9 @@
 .plan {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-height: 100vh;
+  /* Fit under sticky header + above fixed tab bar without page scroll */
+  height: calc(100vh - 84px);
+  max-height: calc(100vh - 84px);
   overflow: hidden;
   background:
     radial-gradient(ellipse 80% 50% at 10% -10%, rgba(186, 228, 245, 0.55), transparent 55%),
@@ -12,8 +13,8 @@
 
 @supports (height: 100dvh) {
   .plan {
-    height: 100dvh;
-    max-height: 100dvh;
+    height: calc(100dvh - 84px);
+    max-height: calc(100dvh - 84px);
   }
 }
 

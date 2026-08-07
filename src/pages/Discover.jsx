@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import { ArrowRight, ChevronLeft, SlidersHorizontal, X } from 'lucide-react'
-import Header from '../components/Header'
 import MiniCard from '../components/MiniCard'
 import BigCard from '../components/BigCard'
 import CategoryPills from '../components/CategoryPills'
 import Pagination from '../components/Pagination'
-import TabBar from '../components/TabBar'
 import FilterSheet from '../components/FilterSheet'
+import { useOpenItinerary } from '../hooks/useOpenItinerary'
 import { allItineraries, page2Itineraries, popularItineraries } from '../data/itineraries'
+import { paths } from '../routes/paths'
 import './Discover.css'
 import './Profile.css'
 
@@ -46,11 +47,14 @@ function useIsDesktop() {
   return isDesktop
 }
 
-export default function Discover({ active = 'discover', onNavigate, onOpenItinerary }) {
+export default function Discover() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const onOpenItinerary = useOpenItinerary()
+  const isPopularAll = pathname.startsWith(paths.discoverPopular)
   const isDesktop = useIsDesktop()
   const [page, setPage] = useState(1)
   const [visibleCount, setVisibleCount] = useState(MOBILE_BATCH_SIZE)
-  const [view, setView] = useState('home')
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState(DEFAULT_POPULAR_FILTERS)
   const [draftFilters, setDraftFilters] = useState(DEFAULT_POPULAR_FILTERS)
@@ -81,28 +85,25 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
     : mobileList.slice(0, visibleCount)
 
   useEffect(() => {
-    if (!isDesktop || page === 1) return
-    feedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [isDesktop, page])
-
-  useEffect(() => {
-    if (isDesktop || !hasMore || view !== 'home') return undefined
+    if (isDesktop || isPopularAll || !hasMore) return undefined
     const sentinel = sentinelRef.current
+    const root = feedRef.current
     if (!sentinel) return undefined
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return
-        setVisibleCount((count) =>
-          Math.min(count + MOBILE_BATCH_SIZE, mobileList.length),
-        )
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleCount((current) =>
+            Math.min(current + MOBILE_BATCH_SIZE, mobileList.length),
+          )
+        }
       },
-      { rootMargin: '240px 0px' },
+      { root: root ?? null, rootMargin: '240px 0px' },
     )
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [isDesktop, hasMore, mobileList.length, visibleCount, view])
+  }, [isDesktop, hasMore, mobileList.length, visibleCount, isPopularAll])
 
   function applyFilters() {
     setFilters({ ...draftFilters })
@@ -113,10 +114,9 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
     setFilters((current) => ({ ...current, [id]: false }))
   }
 
-  if (view === 'popularAll') {
+  if (isPopularAll) {
     return (
       <div className="discover">
-        <Header active={active} onNavigate={onNavigate} />
         <div className="discover__shell discover__shell--all">
           <main className="profile-page__main profile-page__main--all">
             <div className="profile-all__toolbar">
@@ -124,7 +124,7 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
                 type="button"
                 className="profile-icon-btn"
                 aria-label="Back to Discover"
-                onClick={() => setView('home')}
+                onClick={() => navigate(paths.home)}
               >
                 <ChevronLeft size={20} strokeWidth={2} />
               </button>
@@ -171,7 +171,6 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
             </div>
           </main>
         </div>
-        <TabBar active={active} onNavigate={onNavigate} />
 
         <FilterSheet
           open={filterOpen}
@@ -193,7 +192,6 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
 
   return (
     <div className="discover">
-      <Header active={active} onNavigate={onNavigate} />
       <div className="discover__shell">
         <main className="discover__main">
           <section className="page-intro">
@@ -210,7 +208,7 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
               <button
                 className="section-link"
                 type="button"
-                onClick={() => setView('popularAll')}
+                onClick={() => navigate(paths.discoverPopular)}
               >
                 View all
                 <ArrowRight size={16} strokeWidth={2} aria-hidden />
@@ -270,7 +268,6 @@ export default function Discover({ active = 'discover', onNavigate, onOpenItiner
           </section>
         </main>
       </div>
-      <TabBar active={active} onNavigate={onNavigate} />
     </div>
   )
 }

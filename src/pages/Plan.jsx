@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 import { planCollage } from '../data/planCollage'
-import Header from '../components/Header'
-import TabBar from '../components/TabBar'
 import './Plan.css'
 
 const COLLAGE_BASE_WIDTH = 316
@@ -32,7 +30,7 @@ const PLAN_QUOTES = [
   },
 ]
 
-export default function Plan({ active = 'plan', onNavigate }) {
+export default function Plan() {
   const [animateIn, setAnimateIn] = useState(false)
   const [quoteIndex, setQuoteIndex] = useState(0)
   const [quoteVisible, setQuoteVisible] = useState(true)
@@ -62,7 +60,6 @@ export default function Plan({ active = 'plan', onNavigate }) {
 
   return (
     <div className={`plan${animateIn ? ' plan--ready' : ''}`}>
-      <Header active={active} onNavigate={onNavigate} />
       <div className="plan__shell">
         <main className="plan__main">
           <section className="plan-hero" aria-label="Travel inspiration collage">
@@ -115,7 +112,6 @@ export default function Plan({ active = 'plan', onNavigate }) {
           </section>
         </main>
       </div>
-      <TabBar active={active} onNavigate={onNavigate} />
     </div>
   )
 }

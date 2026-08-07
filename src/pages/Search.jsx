@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Clock3, Search as SearchIcon, TrendingUp, X } from 'lucide-react'
 import TabBar from '../components/TabBar'
 import MiniCard from '../components/MiniCard'
@@ -7,6 +8,8 @@ import {
   saveRecentSearch,
   trendingItineraries,
 } from '../data/search'
+import { useOpenItinerary } from '../hooks/useOpenItinerary'
+import { paths } from '../routes/paths'
 import { allItineraries, popularItineraries } from '../data/itineraries'
 import './Search.css'
 
@@ -29,12 +32,9 @@ function useShouldAutofocus() {
   return enabled
 }
 
-export default function Search({
-  active = 'search',
-  onNavigate,
-  onClose,
-  onOpenItinerary,
-}) {
+export default function Search() {
+  const navigate = useNavigate()
+  const onOpenItinerary = useOpenItinerary()
   const inputRef = useRef(null)
   const shouldAutofocus = useShouldAutofocus()
   const [query, setQuery] = useState('')
@@ -86,7 +86,8 @@ export default function Search({
   }
 
   function handleClose() {
-    onClose?.()
+    if (window.history.length > 1) navigate(-1)
+    else navigate(paths.home)
   }
 
   const showIdleSections = query.trim().length === 0
@@ -201,7 +202,7 @@ export default function Search({
           )}
         </main>
       </div>
-      <TabBar active={active} onNavigate={onNavigate} />
+      <TabBar active="search" />
     </div>
   )
 }

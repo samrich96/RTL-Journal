@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,11 +15,11 @@ import {
   Star,
   X,
 } from 'lucide-react'
-import Header from '../components/Header'
-import TabBar from '../components/TabBar'
 import MiniCard from '../components/MiniCard'
 import BigCard from '../components/BigCard'
 import FilterSheet from '../components/FilterSheet'
+import { useOpenItinerary } from '../hooks/useOpenItinerary'
+import { paths } from '../routes/paths'
 import {
   profileAllPreview,
   profileItineraries,
@@ -58,9 +59,12 @@ function SettingsIcon({ type }) {
   return <Icon size={22} strokeWidth={1.75} />
 }
 
-export default function Profile({ active = 'profile', onNavigate, onOpenItinerary }) {
-  const [segment, setSegment] = useState('trips')
-  const [view, setView] = useState('main')
+export default function Profile() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const onOpenItinerary = useOpenItinerary()
+  const isAllView = pathname.startsWith(paths.profileItineraries)
+  const [segment, setSegment] = useState(isAllView ? 'all' : 'trips')
   const [shareOpen, setShareOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState({ myTrips: true, shared: true })
@@ -86,12 +90,12 @@ export default function Profile({ active = 'profile', onNavigate, onOpenItinerar
 
   function openAllItineraries() {
     setSegment('all')
-    setView('all')
+    navigate(paths.profileItineraries)
   }
 
   function handleSegment(id) {
     setSegment(id)
-    setView('main')
+    if (isAllView) navigate(paths.profile)
   }
 
   function applyFilters() {
@@ -99,10 +103,9 @@ export default function Profile({ active = 'profile', onNavigate, onOpenItinerar
     setFilterOpen(false)
   }
 
-  if (view === 'all') {
+  if (isAllView) {
     return (
       <div className="profile-page">
-        <Header active={active} onNavigate={onNavigate} />
         <div className="profile-page__shell">
           <main className="profile-page__main profile-page__main--all">
             <div className="profile-all__toolbar">
@@ -111,8 +114,8 @@ export default function Profile({ active = 'profile', onNavigate, onOpenItinerar
                 className="profile-icon-btn"
                 aria-label="Back to profile"
                 onClick={() => {
-                  setView('main')
                   setSegment('all')
+                  navigate(paths.profile)
                 }}
               >
                 <ChevronLeft size={20} strokeWidth={2} />
@@ -161,8 +164,6 @@ export default function Profile({ active = 'profile', onNavigate, onOpenItinerar
             </div>
           </main>
         </div>
-        <TabBar active={active} onNavigate={onNavigate} />
-
         <FilterSheet
           open={filterOpen}
           label="Filter itineraries"
@@ -183,7 +184,6 @@ export default function Profile({ active = 'profile', onNavigate, onOpenItinerar
 
   return (
     <div className="profile-page">
-      <Header active={active} onNavigate={onNavigate} />
       <div className="profile-page__shell profile-page__shell--flush">
         <main className="profile-page__main">
           <section className="profile-hero">
@@ -333,8 +333,6 @@ export default function Profile({ active = 'profile', onNavigate, onOpenItinerar
           </section>
         </main>
       </div>
-      <TabBar active={active} onNavigate={onNavigate} />
-
       {shareOpen ? (
         <div
           className="profile-sheet"

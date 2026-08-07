@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Navigate, useNavigate, useParams } from 'react-router'
 import {
   BedDouble,
   Calendar,
@@ -31,6 +32,7 @@ import { profileUser } from '../data/profile'
 import {
   EVENT_FILTERS,
   PIN_STYLES,
+  SWISS_ITINERARY_ID,
   switzerlandItinerary,
 } from '../data/switzerlandItinerary'
 import './ItineraryDetail.css'
@@ -82,8 +84,16 @@ function formatMoney(value) {
   return `$${Number(value).toLocaleString('en-US')}`
 }
 
-export default function ItineraryDetail({ onClose }) {
+export default function ItineraryDetail() {
+  const { itineraryId } = useParams()
+  const navigate = useNavigate()
   const trip = switzerlandItinerary
+
+  function onClose() {
+    if (window.history.length > 1) navigate(-1)
+    else navigate('/')
+  }
+
   const sheetRef = useRef(null)
   const bodyRef = useRef(null)
   const dragStartY = useRef(null)
@@ -602,6 +612,10 @@ export default function ItineraryDetail({ onClose }) {
     dragY !== 0
       ? { transform: `translate3d(0, ${dragY}px, 0)` }
       : undefined
+
+  if (itineraryId !== SWISS_ITINERARY_ID) {
+    return <Navigate to="/" replace />
+  }
 
   return (
     <div className="itinerary-detail">
