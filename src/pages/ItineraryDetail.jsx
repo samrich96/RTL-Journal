@@ -643,7 +643,7 @@ export default function ItineraryDetail({ onClose }) {
             const pinStyle = filter.type ? PIN_STYLES[filter.type] : null
             const background = pinStyle
               ? pinStyle.gradient
-              : 'linear-gradient(180deg, #9a9a9a 0%, #6e6e6e 100%)'
+              : 'linear-gradient(180deg, #3a3a3a 0%, #111111 100%)'
             return (
               <button
                 key={filter.id}

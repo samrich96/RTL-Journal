@@ -260,7 +260,7 @@
 .profile-carousel__track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 208px;
+  grid-auto-columns: max-content;
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 4px;
@@ -279,7 +279,9 @@
   justify-content: center;
   gap: 14px;
   width: 112px;
+  min-width: 112px;
   min-height: 172px;
+  margin-right: 2px;
   border: 0;
   border-radius: 100px;
   background: transparent;

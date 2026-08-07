@@ -1,38 +1,72 @@
 .plan {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   background:
     radial-gradient(ellipse 80% 50% at 10% -10%, rgba(186, 228, 245, 0.55), transparent 55%),
     radial-gradient(ellipse 60% 40% at 90% 0%, rgba(235, 249, 255, 0.7), transparent 50%),
     linear-gradient(180deg, #f7fbfe 0%, #ffffff 28%, #ffffff 100%);
 }
 
+@supports (height: 100dvh) {
+  .plan {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+}
+
 .plan__shell {
+  flex: 1;
+  min-height: 0;
   width: min(100%, 1280px);
   margin: 0 auto;
-  padding: 20px 20px 108px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 20px calc(76px + env(safe-area-inset-bottom));
+  overflow: hidden;
 }
 
 .plan__main {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
-  padding-top: 56px;
+  justify-content: center;
+  gap: clamp(10px, 2.2vh, 28px);
+  padding-top: 0;
 }
 
 .plan-hero {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  min-height: 300px;
+  max-height: min(52vh, 420px);
+}
+
+@supports (height: 100dvh) {
+  .plan-hero {
+    max-height: min(52dvh, 420px);
+  }
 }
 
 .plan-collage {
   position: relative;
-  width: min(92vw, 316px);
+  width: min(88vw, 46vh, 316px);
+  max-height: 100%;
   aspect-ratio: 316 / 287;
   transform-origin: center center;
+}
+
+@supports (height: 100dvh) {
+  .plan-collage {
+    width: min(88vw, 46dvh, 316px);
+  }
 }
 
 .plan--ready .plan-collage {
@@ -81,7 +115,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  flex-shrink: 0;
+  gap: clamp(6px, 1.2vh, 12px);
   width: min(100%, 420px);
   text-align: center;
   opacity: 0;
@@ -95,7 +130,7 @@
 .plan-copy__title {
   margin: 0;
   max-width: 16ch;
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.2rem, 2.4vh + 0.55rem, 2rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.15;
@@ -105,8 +140,8 @@
 .plan-copy__quote {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 5.6em;
+  gap: clamp(4px, 0.8vh, 10px);
+  min-height: clamp(3.8em, 9vh, 5.6em);
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 320ms ease, transform 320ms ease;
@@ -120,26 +155,26 @@
 .plan-copy__body {
   margin: 0;
   color: var(--neutral-600);
-  font-size: clamp(0.95rem, 2vw, 1.05rem);
-  line-height: 1.45;
+  font-size: clamp(0.85rem, 1.4vh + 0.35rem, 1.05rem);
+  line-height: 1.4;
 }
 
 .plan-copy__attribution {
   margin: 0;
   color: var(--neutral-600);
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 1.2vh + 0.3rem, 0.95rem);
   font-style: italic;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .plan-copy__cta {
-  margin-top: 12px;
+  margin-top: clamp(4px, 1vh, 12px);
   border: 0;
   border-radius: 100px;
-  padding: 12px 20px;
+  padding: clamp(10px, 1.4vh, 14px) clamp(18px, 4vw, 28px);
   background: #2b2b2b;
   color: white;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.2vh + 0.4rem, 1rem);
   font-weight: 600;
   cursor: pointer;
   box-shadow:
@@ -246,20 +281,7 @@
 
 @media (min-width: 640px) {
   .plan__shell {
-    padding: 28px 28px 64px;
-  }
-
-  .plan__main {
-    gap: 40px;
-    padding-top: 28px;
-  }
-
-  .plan-hero {
-    min-height: 380px;
-  }
-
-  .plan-collage {
-    width: 420px;
+    padding: 12px 28px calc(76px + env(safe-area-inset-bottom));
   }
 
   .plan-collage__item {
@@ -267,31 +289,79 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1016px) {
   .plan__shell {
-    padding: 36px 32px 72px;
-  }
-
-  .plan__main {
-    gap: 48px;
-    padding-top: 48px;
+    padding: 16px 32px 32px;
   }
 
   .plan-hero {
-    min-height: 460px;
+    max-height: min(56vh, 480px);
   }
 
   .plan-collage {
-    width: 460px;
+    width: min(42vw, 50vh, 460px);
+  }
+
+  @supports (height: 100dvh) {
+    .plan-hero {
+      max-height: min(56dvh, 480px);
+    }
+
+    .plan-collage {
+      width: min(42vw, 50dvh, 460px);
+    }
   }
 
   .plan-copy {
     width: min(100%, 480px);
-    gap: 14px;
+  }
+}
+
+/* Short phones: tighten collage further so copy + CTA always fit */
+@media (max-height: 720px) {
+  .plan-hero {
+    max-height: min(42vh, 280px);
   }
 
-  .plan-copy__cta {
-    margin-top: 16px;
-    padding: 14px 28px;
+  .plan-collage {
+    width: min(78vw, 38vh, 260px);
+  }
+
+  @supports (height: 100dvh) {
+    .plan-hero {
+      max-height: min(42dvh, 280px);
+    }
+
+    .plan-collage {
+      width: min(78vw, 38dvh, 260px);
+    }
+  }
+
+  .plan__main {
+    gap: clamp(8px, 1.6vh, 16px);
+  }
+}
+
+@media (max-height: 620px) {
+  .plan-hero {
+    max-height: min(36vh, 220px);
+  }
+
+  .plan-collage {
+    width: min(70vw, 32vh, 220px);
+  }
+
+  @supports (height: 100dvh) {
+    .plan-hero {
+      max-height: min(36dvh, 220px);
+    }
+
+    .plan-collage {
+      width: min(70vw, 32dvh, 220px);
+    }
+  }
+
+  .plan-copy__quote {
+    min-height: 3.4em;
   }
 }

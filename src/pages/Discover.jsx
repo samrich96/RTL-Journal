@@ -15,7 +15,7 @@ const POPULAR_FILTERS = [
   { id: 'closeFriend', label: 'Close friend', color: '#46ae24', chipClass: 'profile-chip--close-friend' },
   { id: 'shared', label: 'Shared', color: '#a55fde', chipClass: 'profile-chip--shared' },
   { id: 'myTrips', label: 'My trips', color: '#198cf8', chipClass: 'profile-chip--trips' },
-  { id: 'others', label: 'Others', color: '#717171', chipClass: 'profile-chip--others' },
+  { id: 'others', label: 'Others', color: '#111111', chipClass: 'profile-chip--others' },
 ]
 
 const DEFAULT_POPULAR_FILTERS = {
