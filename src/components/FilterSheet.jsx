@@ -50,11 +50,21 @@ export default function FilterSheet({
                 >
                   {checked ? <Check size={14} strokeWidth={3} /> : null}
                 </span>
-                <span
-                  className="filter-sheet__swatch"
-                  style={{ backgroundColor: option.color }}
-                  aria-hidden
-                />
+                {option.avatar ? (
+                  <img
+                    className="filter-sheet__avatar"
+                    src={option.avatar}
+                    alt=""
+                    width={20}
+                    height={20}
+                  />
+                ) : (
+                  <span
+                    className="filter-sheet__swatch"
+                    style={{ backgroundColor: option.color }}
+                    aria-hidden
+                  />
+                )}
                 <span>{option.label}</span>
               </button>
             )

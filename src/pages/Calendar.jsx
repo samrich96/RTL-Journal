@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import {
   ChevronDown,
@@ -26,6 +26,35 @@ const FILTER_ICONS = {
   myTrips: Crown,
   shared: Users,
   myCircle: Star,
+}
+
+function parseTripDate(value) {
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function cellDate(viewYear, viewMonth, cell) {
+  return new Date(viewYear, viewMonth + cell.monthOffset, cell.day)
+}
+
+function tripOverlapsMonth(trip, viewYear, viewMonth) {
+  const tripStart = parseTripDate(trip.startDate)
+  const tripEnd = parseTripDate(trip.endDate)
+  const monthStart = new Date(viewYear, viewMonth, 1)
+  const monthEnd = new Date(viewYear, viewMonth + 1, 0)
+  return tripStart <= monthEnd && tripEnd >= monthStart
+}
+
+function sameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
 }
 
 function buildMonthCells(year, month) {
@@ -59,13 +88,17 @@ function buildMonthCells(year, month) {
   return cells
 }
 
-function getEventSegments(trip, cells) {
+function getEventSegments(trip, cells, viewYear, viewMonth) {
+  const tripStart = startOfDay(parseTripDate(trip.startDate))
+  const tripEnd = startOfDay(parseTripDate(trip.endDate))
   const segments = []
   let current = null
 
   cells.forEach((cell, index) => {
-    const inRange =
-      cell.inMonth && cell.day >= trip.startDay && cell.day <= trip.endDay
+    const date = startOfDay(cellDate(viewYear, viewMonth, cell))
+    const inRange = date >= tripStart && date <= tripEnd
+    const isStart = sameDay(date, tripStart)
+    const isEnd = sameDay(date, tripEnd)
 
     if (inRange) {
       if (!current) {
@@ -73,13 +106,15 @@ function getEventSegments(trip, cells) {
           startIndex: index,
           endIndex: index,
           label: trip.calendarLabel,
-          isStart: cell.day === trip.startDay,
+          isStart,
+          isEnd,
         }
       } else {
         current.endIndex = index
+        current.isEnd = isEnd
       }
 
-      if ((index + 1) % 7 === 0 || cell.day === trip.endDay) {
+      if ((index + 1) % 7 === 0 || isEnd) {
         segments.push(current)
         current = null
       }
@@ -134,9 +169,13 @@ export default function Calendar() {
   const navigate = useNavigate()
   const onOpenItinerary = useOpenItinerary()
   const today = useMemo(() => new Date(), [])
-  const [year, setYear] = useState(2026)
-  const [month, setMonth] = useState(4)
-  const [selectedDay, setSelectedDay] = useState(1)
+  const [year, setYear] = useState(() => today.getFullYear())
+  const [month, setMonth] = useState(() => today.getMonth())
+  const [selectedDate, setSelectedDate] = useState(() => ({
+    year: today.getFullYear(),
+    month: today.getMonth(),
+    day: today.getDate(),
+  }))
   const [filters, setFilters] = useState({
     myTrips: true,
     shared: true,
@@ -144,6 +183,30 @@ export default function Calendar() {
   })
   const [draftFilters, setDraftFilters] = useState(filters)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerYear, setPickerYear] = useState(year)
+  const pickerRef = useRef(null)
+
+  useEffect(() => {
+    if (!pickerOpen) return undefined
+
+    function handlePointerDown(event) {
+      if (!pickerRef.current?.contains(event.target)) {
+        setPickerOpen(false)
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') setPickerOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [pickerOpen])
 
   const cells = useMemo(() => buildMonthCells(year, month), [year, month])
   const weeks = useMemo(() => {
@@ -158,23 +221,21 @@ export default function Calendar() {
     () =>
       calendarTrips.filter(
         (trip) =>
-          trip.year === year &&
-          trip.month === month &&
-          filters[trip.filter],
+          filters[trip.filter] && tripOverlapsMonth(trip, year, month),
       ),
     [filters, month, year],
   )
 
   const eventSegments = useMemo(() => {
     const segments = visibleTrips.flatMap((trip) =>
-      getEventSegments(trip, cells).map((segment, index) => ({
+      getEventSegments(trip, cells, year, month).map((segment, index) => ({
         ...segment,
         trip,
         key: `${trip.id}-${index}`,
       })),
     )
     return assignEventLanes(segments)
-  }, [cells, visibleTrips])
+  }, [cells, visibleTrips, year, month])
 
   const maxLaneByWeek = useMemo(() => {
     const map = new Map()
@@ -185,20 +246,50 @@ export default function Calendar() {
     return map
   }, [eventSegments])
 
-  const isCurrentMonth =
-    year === today.getFullYear() && month === today.getMonth()
-
   function shiftMonth(delta) {
     const date = new Date(year, month + delta, 1)
     setYear(date.getFullYear())
     setMonth(date.getMonth())
-    setSelectedDay(1)
+  }
+
+  function openMonthPicker() {
+    setPickerYear(year)
+    setPickerOpen((open) => !open)
+  }
+
+  function jumpToMonth(nextYear, nextMonth) {
+    setYear(nextYear)
+    setMonth(nextMonth)
+    setPickerOpen(false)
   }
 
   function goToToday() {
-    setYear(today.getFullYear())
-    setMonth(today.getMonth())
-    setSelectedDay(today.getDate())
+    const nextYear = today.getFullYear()
+    const nextMonth = today.getMonth()
+    const nextDay = today.getDate()
+    setYear(nextYear)
+    setMonth(nextMonth)
+    setSelectedDate({ year: nextYear, month: nextMonth, day: nextDay })
+    setPickerOpen(false)
+  }
+
+  function selectDay(cell) {
+    const nextYear = cell.inMonth
+      ? year
+      : new Date(year, month + cell.monthOffset, 1).getFullYear()
+    const nextMonth = cell.inMonth
+      ? month
+      : new Date(year, month + cell.monthOffset, 1).getMonth()
+
+    if (!cell.inMonth) {
+      shiftMonth(cell.monthOffset)
+    }
+
+    setSelectedDate({
+      year: nextYear,
+      month: nextMonth,
+      day: cell.day,
+    })
   }
 
   function openSheet() {
@@ -291,16 +382,86 @@ export default function Calendar() {
                     <ChevronRight size={18} strokeWidth={2} />
                   </button>
                 </div>
-                <h2 className="calendar-toolbar__title">
-                  {MONTH_NAMES[month]} {year}
-                </h2>
+                <div className="calendar-toolbar__picker" ref={pickerRef}>
+                  <button
+                    type="button"
+                    className="calendar-toolbar__title-btn"
+                    aria-haspopup="dialog"
+                    aria-expanded={pickerOpen}
+                    aria-label={`Choose month, currently ${MONTH_NAMES[month]} ${year}`}
+                    onClick={openMonthPicker}
+                  >
+                    <span className="calendar-toolbar__title">
+                      {MONTH_NAMES[month]} {year}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      strokeWidth={2}
+                      className={`calendar-toolbar__title-chevron${
+                        pickerOpen ? ' calendar-toolbar__title-chevron--open' : ''
+                      }`}
+                      aria-hidden
+                    />
+                  </button>
+
+                  {pickerOpen ? (
+                    <div
+                      className="calendar-month-picker"
+                      role="dialog"
+                      aria-label="Choose month and year"
+                    >
+                      <div className="calendar-month-picker__year">
+                        <button
+                          type="button"
+                          className="calendar-toolbar__icon-btn"
+                          aria-label="Previous year"
+                          onClick={() => setPickerYear((current) => current - 1)}
+                        >
+                          <ChevronLeft size={18} strokeWidth={2} />
+                        </button>
+                        <span className="calendar-month-picker__year-label">
+                          {pickerYear}
+                        </span>
+                        <button
+                          type="button"
+                          className="calendar-toolbar__icon-btn"
+                          aria-label="Next year"
+                          onClick={() => setPickerYear((current) => current + 1)}
+                        >
+                          <ChevronRight size={18} strokeWidth={2} />
+                        </button>
+                      </div>
+                      <div className="calendar-month-picker__months" role="listbox">
+                        {MONTH_NAMES.map((name, index) => {
+                          const isActive =
+                            pickerYear === year && index === month
+                          const isCurrent =
+                            pickerYear === today.getFullYear() &&
+                            index === today.getMonth()
+                          return (
+                            <button
+                              key={name}
+                              type="button"
+                              role="option"
+                              aria-selected={isActive}
+                              className={`calendar-month-picker__month${
+                                isActive ? ' calendar-month-picker__month--active' : ''
+                              }${
+                                isCurrent ? ' calendar-month-picker__month--today' : ''
+                              }`}
+                              onClick={() => jumpToMonth(pickerYear, index)}
+                            >
+                              {name.slice(0, 3)}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
               <div className="calendar-toolbar__right">
-                <button type="button" className="calendar-toolbar__view">
-                  Month
-                  <ChevronDown size={14} strokeWidth={2} />
-                </button>
                 <button
                   type="button"
                   className="calendar-toolbar__new"
@@ -333,10 +494,14 @@ export default function Calendar() {
                       {week.map((cell, dayIndex) => {
                         const absoluteIndex = weekIndex * 7 + dayIndex
                         const isSelected =
-                          cell.inMonth && cell.day === selectedDay
+                          cell.inMonth &&
+                          selectedDate?.year === year &&
+                          selectedDate?.month === month &&
+                          selectedDate?.day === cell.day
                         const isToday =
                           cell.inMonth &&
-                          isCurrentMonth &&
+                          year === today.getFullYear() &&
+                          month === today.getMonth() &&
                           cell.day === today.getDate()
 
                         return (
@@ -348,14 +513,8 @@ export default function Calendar() {
                             }${isSelected ? ' calendar-grid__day--selected' : ''}${
                               isToday ? ' calendar-grid__day--today' : ''
                             }`}
-                            onClick={() => {
-                              if (!cell.inMonth) {
-                                shiftMonth(cell.monthOffset)
-                                setSelectedDay(cell.day)
-                                return
-                              }
-                              setSelectedDay(cell.day)
-                            }}
+                            aria-current={isToday ? 'date' : undefined}
+                            onClick={() => selectDay(cell)}
                           >
                             <span className="calendar-grid__day-number">
                               {cell.day}
@@ -374,10 +533,7 @@ export default function Calendar() {
                           const endCol = segment.endIndex % 7
                           const span = endCol - startCol + 1
                           const continuesLeft = startCol === 0 && !segment.isStart
-                          const continuesRight =
-                            endCol === 6 &&
-                            segment.trip.endDay >
-                              cells[segment.endIndex].day
+                          const continuesRight = endCol === 6 && !segment.isEnd
 
                           return (
                             <div

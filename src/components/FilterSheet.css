@@ -86,6 +86,14 @@
   flex-shrink: 0;
 }
 
+.filter-sheet__avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .filter-sheet__apply {
   display: flex;
   align-items: center;
