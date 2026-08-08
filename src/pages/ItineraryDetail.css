@@ -1613,55 +1613,57 @@
 }
 
 .itinerary-photos__toolbar {
-  position: absolute;
-  top: calc(8px + env(safe-area-inset-top));
-  left: 0;
-  right: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 24px 10px;
-  pointer-events: none;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 4px;
+  align-items: start;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 12px;
 }
 
-.itinerary-photos__toolbar button {
-  pointer-events: auto;
-}
-
-.itinerary-photos__back,
-.itinerary-photos__toolbar-actions button {
+.itinerary-photos__back {
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
   border: 0;
-  border-radius: 100px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 2px 10px rgba(43, 43, 43, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
   color: #2b2b2b;
+  box-shadow: 0 2px 10px rgba(43, 43, 43, 0.08);
   cursor: pointer;
 }
 
-.itinerary-photos__toolbar-actions {
-  display: flex;
-  gap: 10px;
+.itinerary-photos__heading {
+  min-width: 0;
+  padding-top: 4px;
 }
 
-.itinerary-photos__toolbar-actions button {
-  width: 40px;
-  height: 40px;
+.itinerary-photos__heading h2 {
+  margin: 0;
+  color: #2b2b2b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.itinerary-photos__heading p {
+  margin: 4px 0 0;
+  color: #717171;
+  font-size: 0.8125rem;
+  line-height: 1.35;
 }
 
 .itinerary-photos__scroll {
   flex: 1;
+  min-height: 0;
   overflow: auto;
-  padding: calc(118px + env(safe-area-inset-top)) 0
-    calc(95px + env(safe-area-inset-bottom));
+  padding: 4px 0 calc(28px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 20px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .itinerary-photos__covers,
@@ -1671,19 +1673,10 @@
   gap: 18px;
 }
 
-.itinerary-photos__covers h2,
 .itinerary-photos__day h3 {
   margin: 0;
   padding: 0 24px;
   color: #2b2b2b;
-}
-
-.itinerary-photos__covers h2 {
-  font-size: 1.375rem;
-  font-weight: 600;
-}
-
-.itinerary-photos__day h3 {
   font-size: 1.375rem;
   font-weight: 600;
   line-height: 1.2;

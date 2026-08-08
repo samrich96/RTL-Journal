@@ -1839,7 +1839,12 @@ export default function ItineraryDetail() {
       ) : null}
 
       {photosOpen ? (
-        <div className="itinerary-photos" role="dialog" aria-modal="true">
+        <div
+          className="itinerary-photos"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="itinerary-photos-title"
+        >
           <div className="itinerary-photos__toolbar">
             <button
               type="button"
@@ -1849,19 +1854,14 @@ export default function ItineraryDetail() {
             >
               <ChevronLeft size={22} strokeWidth={2.25} />
             </button>
-            <div className="itinerary-photos__toolbar-actions">
-              <button type="button" aria-label="Share photos">
-                <Share size={18} strokeWidth={1.75} />
-              </button>
-              <button type="button" aria-label="More options">
-                <MoreHorizontal size={18} strokeWidth={1.75} />
-              </button>
+            <div className="itinerary-photos__heading">
+              <h2 id="itinerary-photos-title">{trip.tripPhotosBoard.title}</h2>
+              <p>{trip.tripPhotosBoard.subtitle}</p>
             </div>
           </div>
 
           <div className="itinerary-photos__scroll">
             <section className="itinerary-photos__covers">
-              <h2>Daily Trip Photos</h2>
               <div className="itinerary-photos__cover-row">
                 {trip.photoGallery.map((day) => {
                   const firstIndex = flatPhotos.findIndex(

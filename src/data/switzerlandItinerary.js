@@ -57,6 +57,11 @@ export const switzerlandItinerary = {
   dateRange: 'May 21, 2026 - May 25, 2026',
   eventCount: 24,
   tripPhotoCount: 60,
+  tripPhotosBoard: {
+    title: 'Trip photos',
+    subtitle:
+      'A day-by-day look at the trip — tap a cover to jump in, or scroll through each day’s shots.',
+  },
   photoGallery: [
     {
       day: 1,
