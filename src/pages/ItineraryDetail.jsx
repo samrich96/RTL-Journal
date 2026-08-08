@@ -144,6 +144,8 @@ export default function ItineraryDetail() {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
   const [descriptionClip, setDescriptionClip] = useState(undefined)
   const descriptionRef = useRef(null)
+  const stickyRef = useRef(null)
+  const stickyHeightRef = useRef(0)
   const previewTrackRef = useRef(null)
   const threadScrollRef = useRef(null)
 
@@ -575,9 +577,40 @@ export default function ItineraryDetail() {
     if (sheetState === 'peek' && scroller.scrollTop > 12) {
       expandSheet()
     }
-    setScrollAtTop(scroller.scrollTop <= 1)
-    setStickyPinned(scroller.scrollTop > 48)
+
+    const scrollTop = scroller.scrollTop
+    setScrollAtTop(scrollTop <= 1)
+
+    // Compact sticky removes meta/tabs height. Use hysteresis + a min scroll
+    // room check so short panels (e.g. Core Bookings) don't pin/unpin flicker.
+    setStickyPinned((pinned) => {
+      if (pinned) return scrollTop > 12
+      if (scrollTop <= 56) return false
+      const sticky = stickyRef.current
+      const compactLoss = sticky
+        ? Math.max(0, sticky.offsetHeight - 96)
+        : 110
+      const maxScroll = scroller.scrollHeight - scroller.clientHeight
+      if (maxScroll - compactLoss < 56) return false
+      return true
+    })
   }
+
+  useLayoutEffect(() => {
+    const scroller = bodyRef.current
+    const sticky = stickyRef.current
+    if (!scroller || !sticky) return
+
+    const nextHeight = sticky.offsetHeight
+    const prevHeight = stickyHeightRef.current
+    if (prevHeight > 0) {
+      const delta = prevHeight - nextHeight
+      if (Math.abs(delta) > 1 && scroller.scrollTop > 1) {
+        scroller.scrollTop += delta
+      }
+    }
+    stickyHeightRef.current = nextHeight
+  }, [stickyPinned, scrollAtTop])
 
   function isScrollAtTop() {
     return (bodyRef.current?.scrollTop ?? 0) <= 1
@@ -1001,6 +1034,7 @@ export default function ItineraryDetail() {
           </div>
 
           <div
+            ref={stickyRef}
             className={`itinerary-sheet__sticky${
               stickyPinned ? ' itinerary-sheet__sticky--pinned' : ''
             }`}
