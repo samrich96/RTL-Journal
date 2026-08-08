@@ -68,6 +68,7 @@ const FILTER_ICONS = {
   food: Utensils,
   activity: Ticket,
   lodging: BedDouble,
+  photoshoot: Camera,
 }
 
 const EVENT_ICONS = {
