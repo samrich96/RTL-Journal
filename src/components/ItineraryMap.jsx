@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { PIN_STYLES } from '../data/switzerlandItinerary'
@@ -14,14 +14,16 @@ const ICON_SVGS = {
     '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fffefd" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>',
 }
 
-function FitBounds({ pins }) {
+function FitBounds({ pins, recenterToken }) {
   const map = useMap()
+  const didMount = useRef(false)
 
   useEffect(() => {
     if (!pins.length) return
     const bounds = L.latLngBounds(pins.map((pin) => [pin.lat, pin.lng]))
-    map.fitBounds(bounds.pad(0.28), { animate: false })
-  }, [map, pins])
+    map.fitBounds(bounds.pad(0.28), { animate: didMount.current })
+    didMount.current = true
+  }, [map, pins, recenterToken])
 
   return null
 }
@@ -59,6 +61,7 @@ export default function ItineraryMap({
   pins,
   sheetState,
   activeFilter,
+  recenterToken = 0,
 }) {
   const visiblePins = useMemo(() => {
     if (activeFilter === 'all') return pins
@@ -92,7 +95,7 @@ export default function ItineraryMap({
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; OpenStreetMap &copy; CARTO'
         />
-        <FitBounds pins={visiblePins} />
+        <FitBounds pins={visiblePins} recenterToken={recenterToken} />
         <InvalidateSize sheetState={sheetState} />
         {markers.map((pin) => (
           <Marker

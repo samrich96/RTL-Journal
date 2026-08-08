@@ -13,6 +13,7 @@ import {
   Flag,
   Heart,
   Link2,
+  LocateFixed,
   Lock,
   Map,
   MessageCircle,
@@ -122,6 +123,7 @@ export default function ItineraryDetail() {
   const [isDragging, setIsDragging] = useState(false)
   const [scrollAtTop, setScrollAtTop] = useState(true)
   const [eventFilter, setEventFilter] = useState('all')
+  const [mapRecenterToken, setMapRecenterToken] = useState(0)
   const [tab, setTab] = useState('Overview')
   const [wishlisted, setWishlisted] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -943,6 +945,7 @@ export default function ItineraryDetail() {
         pins={trip.pins}
         sheetState={sheetState}
         activeFilter={eventFilter}
+        recenterToken={mapRecenterToken}
       />
 
       <div className="itinerary-detail__chrome">
@@ -954,6 +957,17 @@ export default function ItineraryDetail() {
             onClick={onClose}
           >
             <ChevronLeft size={20} strokeWidth={2} />
+          </button>
+          <button
+            type="button"
+            className="itinerary-detail__icon-btn"
+            aria-label="Recenter map"
+            onClick={() => {
+              setEventFilter('all')
+              setMapRecenterToken((token) => token + 1)
+            }}
+          >
+            <LocateFixed size={18} strokeWidth={2} />
           </button>
         </div>
 

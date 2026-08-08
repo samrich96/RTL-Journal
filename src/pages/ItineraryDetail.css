@@ -24,7 +24,7 @@
 }
 
 .itinerary-detail__topbar {
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 12px;
   pointer-events: auto;
 }
@@ -95,7 +95,7 @@
   --mini-height: clamp(96px, 12.32vh, 120px);
   --peek-inset: 10px;
   --sheet-radius: 28px;
-  --expanded-top-gap: 67px;
+  --expanded-top-gap: 52px;
 
   position: absolute;
   z-index: 5;
@@ -2194,7 +2194,7 @@
 
   .itinerary-sheet {
     --sheet-radius: 32px;
-    --expanded-top-gap: 75px;
+    --expanded-top-gap: 60px;
   }
 }
 
@@ -2207,7 +2207,7 @@
     --peek-height: min(440px, 52vh);
     --peek-image: clamp(168px, 20vh, 200px);
     --mini-height: clamp(110px, 12vh, 140px);
-    --expanded-top-gap: 83px;
+    --expanded-top-gap: 68px;
   }
 
   @supports (height: 100dvh) {
