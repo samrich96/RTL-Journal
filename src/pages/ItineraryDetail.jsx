@@ -16,6 +16,7 @@ import {
   LocateFixed,
   Lock,
   Map,
+  MapPinned,
   MessageCircle,
   Minus,
   MoreHorizontal,
@@ -91,6 +92,36 @@ function formatMoney(value) {
   return `$${Number(value).toLocaleString('en-US')}`
 }
 
+function formatEventCost(cost) {
+  if (cost == null || cost === '') return ''
+  const numeric = Number(String(cost).replace(/[^0-9.-]/g, ''))
+  if (!Number.isFinite(numeric)) return String(cost)
+  return `$${Math.round(numeric)}`
+}
+
+function eventShowsMapLink(event) {
+  return (
+    event?.map &&
+    event.type !== 'flight' &&
+    event.type !== 'transport'
+  )
+}
+
+function buildEventMapLinks(event) {
+  const placeName = event.map?.query || event.title
+  const { lat, lng } = event.map || {}
+  const hasCoords = lat != null && lng != null
+  const googleQuery = encodeURIComponent(
+    hasCoords ? `${placeName} @${lat},${lng}` : placeName,
+  )
+  const appleQuery = encodeURIComponent(placeName)
+  const google = `https://www.google.com/maps/search/?api=1&query=${googleQuery}`
+  const apple = hasCoords
+    ? `https://maps.apple.com/?ll=${lat},${lng}&q=${appleQuery}`
+    : `https://maps.apple.com/?q=${appleQuery}`
+  return { google, apple, copy: google }
+}
+
 export default function ItineraryDetail() {
   const { itineraryId } = useParams()
   const navigate = useNavigate()
@@ -128,6 +159,8 @@ export default function ItineraryDetail() {
   const [wishlisted, setWishlisted] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [mapsSheet, setMapsSheet] = useState(null)
+  const [mapLinkCopied, setMapLinkCopied] = useState(false)
   const [expandedBudget, setExpandedBudget] = useState(null)
   const [selectedBudget, setSelectedBudget] = useState(null)
   const [stickyPinned, setStickyPinned] = useState(false)
@@ -1367,28 +1400,50 @@ export default function ItineraryDetail() {
                             </span>
                           </div>
                           <div className="itinerary-day-detail__card">
-                            <div className="itinerary-day-detail__event-copy">
-                              <strong>{event.title}</strong>
-                              <div className="itinerary-day-detail__event-meta">
-                                {event.time ? <span>{event.time}</span> : null}
-                                {event.rating != null ? (
-                                  <span className="itinerary-day-detail__pill">
-                                    <Star
-                                      size={12}
-                                      strokeWidth={0}
-                                      fill="#fab005"
-                                      color="#fab005"
-                                      aria-hidden
-                                    />
-                                    {event.rating}
-                                  </span>
-                                ) : null}
-                                {event.cost ? (
-                                  <span className="itinerary-day-detail__pill">
-                                    {event.cost}
-                                  </span>
-                                ) : null}
+                            <div className="itinerary-day-detail__card-top">
+                              <div className="itinerary-day-detail__event-copy">
+                                <strong>{event.title}</strong>
+                                <div className="itinerary-day-detail__event-meta">
+                                  {event.time ? <span>{event.time}</span> : null}
+                                  {event.rating != null ? (
+                                    <span className="itinerary-day-detail__pill">
+                                      <Star
+                                        size={12}
+                                        strokeWidth={0}
+                                        fill="currentColor"
+                                        aria-hidden
+                                      />
+                                      {event.rating}
+                                    </span>
+                                  ) : null}
+                                  {event.cost ? (
+                                    <span className="itinerary-day-detail__pill">
+                                      {formatEventCost(event.cost)}
+                                    </span>
+                                  ) : null}
+                                </div>
                               </div>
+                              {eventShowsMapLink(event) ? (
+                                <button
+                                  type="button"
+                                  className="itinerary-day-detail__map-btn"
+                                  aria-label={`Open map options for ${event.title}`}
+                                  onClick={(clickEvent) => {
+                                    clickEvent.stopPropagation()
+                                    const links = buildEventMapLinks(event)
+                                    setMapLinkCopied(false)
+                                    setMapsSheet({
+                                      title: event.title,
+                                      ...links,
+                                    })
+                                  }}
+                                  onPointerDown={(pointerEvent) => {
+                                    pointerEvent.stopPropagation()
+                                  }}
+                                >
+                                  <MapPinned size={16} strokeWidth={2} />
+                                </button>
+                              ) : null}
                             </div>
                             {event.images?.length ? (
                               <div className="itinerary-day-detail__photos">
@@ -2018,6 +2073,85 @@ export default function ItineraryDetail() {
                   }}
                 />
               ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {mapsSheet ? (
+        <div
+          className="event-maps-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="event-maps-sheet-title"
+        >
+          <button
+            type="button"
+            className="event-maps-sheet__backdrop"
+            aria-label="Close"
+            onClick={() => {
+              setMapsSheet(null)
+              setMapLinkCopied(false)
+            }}
+          />
+          <div className="event-maps-sheet__panel">
+            <header className="event-maps-sheet__header">
+              <h2 id="event-maps-sheet-title">Open in Maps</h2>
+              <button
+                type="button"
+                className="event-maps-sheet__close"
+                aria-label="Close"
+                onClick={() => {
+                  setMapsSheet(null)
+                  setMapLinkCopied(false)
+                }}
+              >
+                <X size={18} strokeWidth={2} />
+              </button>
+            </header>
+            <p className="event-maps-sheet__place">{mapsSheet.title}</p>
+            <div className="event-maps-sheet__actions">
+              <a
+                className="event-maps-sheet__action"
+                href={mapsSheet.google}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMapsSheet(null)}
+              >
+                <span className="event-maps-sheet__action-icon" aria-hidden>
+                  <Map size={18} strokeWidth={2} />
+                </span>
+                Open in Google Maps
+              </a>
+              <a
+                className="event-maps-sheet__action"
+                href={mapsSheet.apple}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMapsSheet(null)}
+              >
+                <span className="event-maps-sheet__action-icon" aria-hidden>
+                  <MapPinned size={18} strokeWidth={2} />
+                </span>
+                Open in Apple Maps
+              </a>
+              <button
+                type="button"
+                className="event-maps-sheet__action"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(mapsSheet.copy)
+                    setMapLinkCopied(true)
+                  } catch {
+                    setMapLinkCopied(false)
+                  }
+                }}
+              >
+                <span className="event-maps-sheet__action-icon" aria-hidden>
+                  <Link2 size={18} strokeWidth={2} />
+                </span>
+                {mapLinkCopied ? 'Link copied' : 'Copy map link'}
+              </button>
             </div>
           </div>
         </div>

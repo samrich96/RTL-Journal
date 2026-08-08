@@ -190,6 +190,11 @@ export const switzerlandItinerary = {
           title: 'Bellevue Palace Bern',
           time: 'Check in after 3:00 PM',
           rating: 4.6,
+          map: {
+            lat: 46.947,
+            lng: 7.4465,
+            query: 'Bellevue Palace Bern, Switzerland',
+          },
           images: [
             '/assets/swiss-event-hotel-1.png',
             '/assets/swiss-event-hotel-2.png',
@@ -204,6 +209,11 @@ export const switzerlandItinerary = {
           time: '4:20 PM',
           rating: 4.6,
           cost: '$17.53',
+          map: {
+            lat: 47.0554,
+            lng: 7.6277,
+            query: 'Burgdorf Castle, Switzerland',
+          },
           images: [
             '/assets/swiss-event-castle-1.png',
             '/assets/swiss-event-castle-2.png',
@@ -218,6 +228,11 @@ export const switzerlandItinerary = {
           time: '6:30 PM',
           rating: 4.8,
           cost: '$58.24',
+          map: {
+            lat: 46.948,
+            lng: 7.4474,
+            query: 'Restaurant National Bern, Switzerland',
+          },
           images: [
             '/assets/swiss-event-food-1.png',
             '/assets/swiss-event-food-2.png',
@@ -248,6 +263,11 @@ export const switzerlandItinerary = {
           title: 'Chapel Bridge & Old Town',
           time: '10:15 AM',
           rating: 4.7,
+          map: {
+            lat: 47.0502,
+            lng: 8.3093,
+            query: 'Chapel Bridge Lucerne, Switzerland',
+          },
           images: [
             '/assets/swiss-gallery-2.png',
             '/assets/swiss-day-2.png',
@@ -262,6 +282,11 @@ export const switzerlandItinerary = {
           time: '12:30 PM',
           rating: 4.6,
           cost: '$46.50',
+          map: {
+            lat: 47.0505,
+            lng: 8.3045,
+            query: 'Wirtshaus Galliker Lucerne, Switzerland',
+          },
           images: [
             '/assets/swiss-event-food-1.png',
             '/assets/swiss-event-food-2.png',
@@ -274,6 +299,11 @@ export const switzerlandItinerary = {
           time: '2:45 PM',
           rating: 4.8,
           cost: '$90.00',
+          map: {
+            lat: 46.9806,
+            lng: 8.2532,
+            query: 'Mount Pilatus, Switzerland',
+          },
           images: [
             '/assets/swiss-gallery-8.png',
             '/assets/swiss-gallery-9.png',
@@ -289,6 +319,11 @@ export const switzerlandItinerary = {
           time: '7:00 PM',
           rating: 4.5,
           cost: '$38.00',
+          map: {
+            lat: 47.051,
+            lng: 8.305,
+            query: 'Lake Lucerne waterfront, Switzerland',
+          },
           images: ['/assets/swiss-gallery-10.png', '/assets/swiss-photo-3.png'],
         },
       ],
@@ -316,6 +351,11 @@ export const switzerlandItinerary = {
           time: '10:30 AM',
           rating: 4.7,
           cost: '$42.00',
+          map: {
+            lat: 46.6863,
+            lng: 7.8632,
+            query: 'Harder Kulm Interlaken, Switzerland',
+          },
           images: [
             '/assets/swiss-event-food-2.png',
             '/assets/swiss-gallery-6.png',
@@ -328,6 +368,11 @@ export const switzerlandItinerary = {
           title: 'Soft alpine hike',
           time: '12:30 PM',
           rating: 4.9,
+          map: {
+            lat: 46.687,
+            lng: 7.87,
+            query: 'Interlaken alpine trail, Switzerland',
+          },
           images: [
             '/assets/swiss-gallery-3.png',
             '/assets/swiss-day-3.png',
@@ -341,6 +386,11 @@ export const switzerlandItinerary = {
           title: 'Lakeside polaroid session',
           time: '4:15 PM',
           cost: '$20.00',
+          map: {
+            lat: 46.688,
+            lng: 7.865,
+            query: 'Lake Thun Interlaken, Switzerland',
+          },
           images: [
             '/assets/swiss-photo-2.png',
             '/assets/swiss-gallery-7.png',
@@ -354,6 +404,11 @@ export const switzerlandItinerary = {
           time: '7:15 PM',
           rating: 4.6,
           cost: '$76.00',
+          map: {
+            lat: 46.6868,
+            lng: 7.8635,
+            query: 'Restaurant Krebs Interlaken, Switzerland',
+          },
           images: [
             '/assets/swiss-event-food-1.png',
             '/assets/swiss-photo-3.png',
@@ -386,6 +441,11 @@ export const switzerlandItinerary = {
           time: '11:00 AM',
           rating: 4.8,
           cost: '$62.00',
+          map: {
+            lat: 46.6244,
+            lng: 8.0343,
+            query: 'First Cliff Walk Grindelwald, Switzerland',
+          },
           images: [
             '/assets/swiss-gallery-4.png',
             '/assets/swiss-day-4.png',
@@ -401,6 +461,11 @@ export const switzerlandItinerary = {
           time: '1:30 PM',
           rating: 4.5,
           cost: '$34.00',
+          map: {
+            lat: 46.626,
+            lng: 8.036,
+            query: 'Grindelwald First, Switzerland',
+          },
           images: [
             '/assets/swiss-event-food-2.png',
             '/assets/swiss-photo-1.png',
@@ -414,6 +479,11 @@ export const switzerlandItinerary = {
           time: '6:45 PM',
           rating: 4.9,
           cost: '$68.00',
+          map: {
+            lat: 46.6248,
+            lng: 8.033,
+            query: 'Restaurant Spot Grindelwald, Switzerland',
+          },
           images: [
             '/assets/swiss-event-food-1.png',
             '/assets/swiss-gallery-6.png',
@@ -445,6 +515,11 @@ export const switzerlandItinerary = {
           title: 'Matterhorn polaroids',
           time: '9:30 AM',
           cost: '$20.00',
+          map: {
+            lat: 46.0207,
+            lng: 7.7491,
+            query: 'Matterhorn viewpoint Zermatt, Switzerland',
+          },
           images: [
             '/assets/swiss-gallery-5.png',
             '/assets/swiss-day-5.png',
@@ -460,6 +535,11 @@ export const switzerlandItinerary = {
           time: '11:00 AM',
           rating: 4.6,
           cost: '$31.00',
+          map: {
+            lat: 46.024,
+            lng: 7.748,
+            query: 'Zermatt village café, Switzerland',
+          },
           images: [
             '/assets/swiss-event-food-1.png',
             '/assets/swiss-event-food-2.png',
@@ -468,8 +548,20 @@ export const switzerlandItinerary = {
         {
           id: 'd5e4',
           type: 'lodging',
-          title: 'Checkout & luggage drop',
-          time: '12:30 PM',
+          title: 'Zermatt Lodge',
+          time: 'Check out by 12:30 PM',
+          rating: 4.7,
+          map: {
+            lat: 46.0207,
+            lng: 7.7491,
+            query: 'Zermatt lodge, Switzerland',
+          },
+          images: [
+            '/assets/swiss-event-hotel-1.png',
+            '/assets/swiss-event-hotel-2.png',
+            '/assets/swiss-event-hotel-3.png',
+            '/assets/swiss-gallery-5.png',
+          ],
         },
         {
           id: 'd5e5',
