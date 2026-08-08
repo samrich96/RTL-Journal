@@ -342,6 +342,11 @@ export default function ItineraryDetail() {
     }
   }
 
+  function openItineraryDay(dayNumber) {
+    setTab('Itinerary')
+    selectItineraryDay(dayNumber)
+  }
+
   const selectedItineraryDay =
     typeof itinerarySelection === 'number'
       ? trip.itineraryDays.find((day) => day.day === itinerarySelection)
@@ -561,6 +566,20 @@ export default function ItineraryDetail() {
       setStickyPinned(false)
     }
   }, [tab])
+
+  useEffect(() => {
+    if (tab !== 'Itinerary' || typeof itinerarySelection !== 'number') return
+    const frame = window.requestAnimationFrame(() => {
+      document
+        .querySelector('.itinerary-day-chip--active')
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest',
+        })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [tab, itinerarySelection])
 
   function expandSheet() {
     setSheetState('expanded')
@@ -1265,7 +1284,8 @@ export default function ItineraryDetail() {
                         key={day.day}
                         type="button"
                         className="itinerary-sheet__daily-dot"
-                        aria-label={`Day ${day.day}`}
+                        aria-label={`Go to Day ${day.day}`}
+                        onClick={() => openItineraryDay(day.day)}
                       >
                         {day.day}
                       </button>
@@ -1274,22 +1294,29 @@ export default function ItineraryDetail() {
                   <ul className="itinerary-sheet__daily-cards">
                     {trip.daySummaries.map((day) => (
                       <li key={day.day}>
-                        <img src={day.image} alt="" />
-                        <div>
-                          <div className="itinerary-sheet__daily-card-meta">
-                            <span>DAY {day.day}</span>
-                            <span>{day.events} Events</span>
+                        <button
+                          type="button"
+                          className="itinerary-sheet__daily-card"
+                          onClick={() => openItineraryDay(day.day)}
+                          aria-label={`Open Day ${day.day}: ${day.title}`}
+                        >
+                          <img src={day.image} alt="" />
+                          <div>
+                            <div className="itinerary-sheet__daily-card-meta">
+                              <span>DAY {day.day}</span>
+                              <span>{day.events} Events</span>
+                            </div>
+                            <strong>{day.title}</strong>
+                            <span className="itinerary-sheet__daily-card-date">
+                              <Calendar
+                                size={14}
+                                strokeWidth={1.75}
+                                aria-hidden
+                              />
+                              {day.dateLabel}
+                            </span>
                           </div>
-                          <strong>{day.title}</strong>
-                          <span className="itinerary-sheet__daily-card-date">
-                            <Calendar
-                              size={14}
-                              strokeWidth={1.75}
-                              aria-hidden
-                            />
-                            {day.dateLabel}
-                          </span>
-                        </div>
+                        </button>
                       </li>
                     ))}
                   </ul>

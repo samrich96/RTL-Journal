@@ -1573,17 +1573,33 @@
 }
 
 .itinerary-sheet__daily-cards li {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.itinerary-sheet__daily-card {
   display: flex;
   gap: 8px;
   align-items: flex-start;
+  width: 100%;
+  margin: 0;
   padding: 10px;
   border: 1px solid #f1f1f1;
   border-radius: 15px;
   background: #fff;
   box-shadow: 0 4px 10px rgba(109, 109, 109, 0.2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.itinerary-sheet__daily-cards img {
+.itinerary-sheet__daily-cards img,
+.itinerary-sheet__daily-card img {
   width: 74px;
   height: 60px;
   border-radius: 10px;
@@ -1591,7 +1607,8 @@
   flex-shrink: 0;
 }
 
-.itinerary-sheet__daily-cards > li > div {
+.itinerary-sheet__daily-cards > li > div,
+.itinerary-sheet__daily-card > div {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2186,7 +2203,8 @@
   color: #2b2b2b;
 }
 
-.itinerary-sheet--expanded .itinerary-sheet__daily-cards li {
+.itinerary-sheet--expanded .itinerary-sheet__daily-cards li,
+.itinerary-sheet--expanded .itinerary-sheet__daily-card {
   background: #fff;
   color: #2b2b2b;
 }
