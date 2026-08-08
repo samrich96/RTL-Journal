@@ -69,7 +69,12 @@ export default function Header({ active = 'discover' }) {
             </button>
           ) : null}
           */}
-          <button className="icon-button" type="button" aria-label="Notifications">
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Notifications"
+            onClick={() => navigate(paths.notifications)}
+          >
             <Bell size={20} strokeWidth={1.75} />
           </button>
         </div>

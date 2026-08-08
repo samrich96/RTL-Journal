@@ -56,6 +56,10 @@ export const router = createBrowserRouter([
               },
             ],
           },
+          {
+            path: 'notifications',
+            lazy: lazyPage(() => import('../pages/Notifications')),
+          },
         ],
       },
       {
