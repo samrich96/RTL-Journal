@@ -3,7 +3,6 @@ import {
   Bell,
   CalendarDays,
   LayoutGrid,
-  Map,
   PlusSquare,
   Search,
   UserRound,
@@ -62,11 +61,14 @@ export default function Header({ active = 'discover' }) {
               <span>Search itineraries</span>
             </button>
           ) : null}
+          {/* Map icon hidden for initial release — not building map discovery yet.
+              Re-enable with: import { Map } from 'lucide-react'
           {active === 'discover' ? (
             <button className="icon-button" type="button" aria-label="Map">
               <Map size={20} strokeWidth={1.75} />
             </button>
           ) : null}
+          */}
           <button className="icon-button" type="button" aria-label="Notifications">
             <Bell size={20} strokeWidth={1.75} />
           </button>

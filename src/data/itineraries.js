@@ -9,6 +9,29 @@ export const categories = [
   'No Limits',
 ]
 
+/** Cost bands for Discover category pills (estimated cost per traveler). */
+export const categoryRanges = {
+  'All Itineraries': null,
+  'Backpack & Dreams': { min: 0, max: 2500, label: '<$2,500' },
+  'Budget Ballin’': { min: 2501, max: 5000, label: '$2,501 - $5,000' },
+  'Treat Yourself': { min: 5001, max: 10000, label: '$5,001 - $10,000' },
+  'First Class': { min: 10001, max: 15000, label: '$10,001 - $15,000' },
+  'CFO Approved': { min: 15001, max: 30000, label: '$15,001 - $30,000' },
+  'Private Jet Energy': { min: 30001, max: 50000, label: '$30,001 - $50,000' },
+  'No Limits': { min: 50001, max: Infinity, label: 'Over $50,000' },
+}
+
+export function parseItineraryPrice(price) {
+  return Number(String(price ?? '').replace(/[^0-9.]/g, '')) || 0
+}
+
+export function itineraryMatchesCategory(itinerary, category) {
+  const range = categoryRanges[category]
+  if (!range) return true
+  const value = parseItineraryPrice(itinerary.price)
+  return value >= range.min && value <= range.max
+}
+
 export const popularItineraries = [
   {
     id: 'p1',
@@ -112,7 +135,7 @@ export const allItineraries = [
     avatar: '/assets/avatar-ayna.png',
     author: 'Ayna So',
     flags: ['/assets/flag-australia.png'],
-    price: '12,652',
+    price: '62,000',
     duration: '9 Days',
   },
   {
@@ -144,7 +167,7 @@ export const allItineraries = [
     author: 'Johanna Abiola',
     badge: 'group',
     flags: ['/assets/flag-7.png'],
-    price: '4,290',
+    price: '18,400',
     duration: '8 Days',
   },
   {
@@ -156,7 +179,7 @@ export const allItineraries = [
     badge: 'crown',
     flags: ['/assets/flag-8.png', '/assets/flag-7.png', '/assets/flag-1.png'],
     extraFlags: 2,
-    price: '7,382',
+    price: '8,750',
     duration: '18 Days',
   },
   {
@@ -166,7 +189,7 @@ export const allItineraries = [
     avatar: '/assets/avatar-ellipse694.png',
     author: 'Eloise Ines',
     flags: ['/assets/flag-7.png', '/assets/flag-9.png', '/assets/flag-0.png'],
-    price: '7,382',
+    price: '36,800',
     duration: '18 Days',
   },
   {
@@ -196,7 +219,7 @@ export const allItineraries = [
     avatar: '/assets/avatar-june.png',
     author: 'Maya Chen',
     flags: ['/assets/flag-japan.png'],
-    price: '2,480',
+    price: '12,400',
     duration: '6 Days',
   },
   {

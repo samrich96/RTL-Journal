@@ -165,6 +165,10 @@
   flex-direction: column;
 }
 
+.categories + .feed-section {
+  margin-top: -18px;
+}
+
 .feed {
   display: grid;
   grid-template-columns: 1fr;
@@ -189,6 +193,10 @@
 
   .discover__main {
     gap: 48px;
+  }
+
+  .categories + .feed-section {
+    margin-top: -28px;
   }
 
   .page-intro__title {

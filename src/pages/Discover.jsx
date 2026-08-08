@@ -7,7 +7,7 @@ import CategoryPills from '../components/CategoryPills'
 import Pagination from '../components/Pagination'
 import FilterSheet from '../components/FilterSheet'
 import { useOpenItinerary } from '../hooks/useOpenItinerary'
-import { allItineraries, page2Itineraries, popularItineraries } from '../data/itineraries'
+import { allItineraries, page2Itineraries, popularItineraries, categories, itineraryMatchesCategory } from '../data/itineraries'
 import { profileUser } from '../data/profile'
 import { paths } from '../routes/paths'
 import './Discover.css'
@@ -33,9 +33,10 @@ const DEFAULT_POPULAR_FILTERS = {
   others: true,
 }
 
-const PAGE_COUNT = 2
 const DESKTOP_QUERY = '(min-width: 1024px)'
 const MOBILE_BATCH_SIZE = 16
+const DESKTOP_PAGE_SIZE = 12
+const ALL_CATEGORY = categories[0]
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => {
@@ -62,6 +63,7 @@ export default function Discover() {
   const isDesktop = useIsDesktop()
   const [page, setPage] = useState(1)
   const [visibleCount, setVisibleCount] = useState(MOBILE_BATCH_SIZE)
+  const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORY)
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState(DEFAULT_POPULAR_FILTERS)
   const [draftFilters, setDraftFilters] = useState(DEFAULT_POPULAR_FILTERS)
@@ -81,15 +83,39 @@ export default function Discover() {
     [pages],
   )
 
+  const filteredFeed = useMemo(() => {
+    const source = isDesktop
+      ? [...pages[0], ...pages[1]]
+      : mobileList
+    return source.filter((item) =>
+      itineraryMatchesCategory(item, categoryFilter),
+    )
+  }, [isDesktop, pages, mobileList, categoryFilter])
+
   const popularVisible = popularItineraries.filter(
     (trip) => filters[trip.filter],
   )
 
-  const hasMore = visibleCount < mobileList.length
-  const desktopItems = pages[page - 1] ?? pages[0]
+  const desktopPageCount = Math.max(
+    1,
+    Math.ceil(filteredFeed.length / DESKTOP_PAGE_SIZE),
+  )
+  const hasMore = visibleCount < filteredFeed.length
   const visibleItems = isDesktop
-    ? desktopItems
-    : mobileList.slice(0, visibleCount)
+    ? filteredFeed.slice(
+        (page - 1) * DESKTOP_PAGE_SIZE,
+        page * DESKTOP_PAGE_SIZE,
+      )
+    : filteredFeed.slice(0, visibleCount)
+
+  useEffect(() => {
+    setPage(1)
+    setVisibleCount(MOBILE_BATCH_SIZE)
+  }, [categoryFilter])
+
+  useEffect(() => {
+    if (page > desktopPageCount) setPage(desktopPageCount)
+  }, [page, desktopPageCount])
 
   useEffect(() => {
     if (isDesktop || isPopularAll || !hasMore) return undefined
@@ -101,7 +127,7 @@ export default function Discover() {
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
           setVisibleCount((current) =>
-            Math.min(current + MOBILE_BATCH_SIZE, mobileList.length),
+            Math.min(current + MOBILE_BATCH_SIZE, filteredFeed.length),
           )
         }
       },
@@ -110,7 +136,13 @@ export default function Discover() {
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [isDesktop, hasMore, mobileList.length, visibleCount, isPopularAll])
+  }, [
+    isDesktop,
+    hasMore,
+    filteredFeed.length,
+    visibleCount,
+    isPopularAll,
+  ])
 
   function applyFilters() {
     setFilters({ ...draftFilters })
@@ -119,6 +151,10 @@ export default function Discover() {
 
   function removeFilter(id) {
     setFilters((current) => ({ ...current, [id]: false }))
+  }
+
+  function onCategoryChange(category) {
+    setCategoryFilter(category)
   }
 
   if (isPopularAll) {
@@ -241,7 +277,11 @@ export default function Discover() {
             </div>
           </section>
 
-          <CategoryPills />
+          <CategoryPills
+            active={categoryFilter}
+            onChange={onCategoryChange}
+            resultCount={filteredFeed.length}
+          />
 
           <section
             className="feed-section"
@@ -252,24 +292,36 @@ export default function Discover() {
               <h2 className="section-title">All itineraries</h2>
               <p className="section-note">Estimated cost per traveler</p>
             </div>
-            <div className="feed">
-              {visibleItems.map((itinerary) => (
-                <BigCard
-                  key={isDesktop ? `${page}-${itinerary.id}` : itinerary.id}
-                  itinerary={itinerary}
-                  onOpen={onOpenItinerary}
-                />
-              ))}
-            </div>
+            {visibleItems.length ? (
+              <div className="feed">
+                {visibleItems.map((itinerary) => (
+                  <BigCard
+                    key={
+                      isDesktop
+                        ? `${categoryFilter}-${page}-${itinerary.id}`
+                        : `${categoryFilter}-${itinerary.id}`
+                    }
+                    itinerary={itinerary}
+                    onOpen={onOpenItinerary}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="infinite-feed__status">
+                No itineraries in this price range yet
+              </p>
+            )}
 
-            {isDesktop ? (
+            {isDesktop && visibleItems.length ? (
               <Pagination
                 page={page}
-                pageCount={PAGE_COUNT}
+                pageCount={desktopPageCount}
                 onPageChange={setPage}
                 label="All itineraries pages"
               />
-            ) : (
+            ) : null}
+
+            {!isDesktop && visibleItems.length ? (
               <div className="infinite-feed" aria-live="polite">
                 {hasMore ? (
                   <>
@@ -280,7 +332,7 @@ export default function Discover() {
                   <p className="infinite-feed__status">You’ve reached the end</p>
                 )}
               </div>
-            )}
+            ) : null}
           </section>
         </main>
       </div>
