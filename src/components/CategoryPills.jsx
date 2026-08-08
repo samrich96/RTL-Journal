@@ -1,5 +1,5 @@
-import { X } from 'lucide-react'
-import { categories, categoryRanges } from '../data/itineraries'
+import { SlidersHorizontal, X } from 'lucide-react'
+import { categories } from '../data/itineraries'
 import './CategoryPills.css'
 
 const ALL_CATEGORY = categories[0]
@@ -7,17 +7,13 @@ const ALL_CATEGORY = categories[0]
 export default function CategoryPills({
   active = ALL_CATEGORY,
   onChange,
+  onOpenFilters,
+  activeChips = [],
+  onRemoveChip,
   resultCount,
 }) {
-  const range = categoryRanges[active]
-  const isFiltered = Boolean(range)
-
   function selectCategory(category) {
     onChange?.(category)
-  }
-
-  function clearFilter() {
-    onChange?.(ALL_CATEGORY)
   }
 
   return (
@@ -42,17 +38,29 @@ export default function CategoryPills({
           )
         })}
       </div>
-      {isFiltered ? (
+      {activeChips.length ? (
         <div className="categories__active-filters" aria-label="Active filters">
-          <button
-            type="button"
-            className="categories__range-chip"
-            onClick={clearFilter}
-            aria-label={`Clear ${active} filter`}
-          >
-            <span>{range.label}</span>
-            <X size={14} strokeWidth={2.25} aria-hidden />
-          </button>
+          {activeChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              className="categories__range-chip"
+              onClick={() => onRemoveChip?.(chip)}
+              aria-label={`Clear ${chip.label} filter`}
+            >
+              {chip.flag ? (
+                <img
+                  className="categories__range-chip-flag"
+                  src={chip.flag}
+                  alt=""
+                  width={16}
+                  height={16}
+                />
+              ) : null}
+              <span>{chip.label}</span>
+              <X size={14} strokeWidth={2.25} aria-hidden />
+            </button>
+          ))}
         </div>
       ) : null}
       <div className="categories__results">
@@ -63,6 +71,14 @@ export default function CategoryPills({
                 resultCount === 1 ? '' : 's'
               }`}
         </p>
+        <button
+          className="filter-button"
+          type="button"
+          aria-label="Filter results"
+          onClick={onOpenFilters}
+        >
+          <SlidersHorizontal size={16} strokeWidth={1.75} />
+        </button>
       </div>
     </section>
   )

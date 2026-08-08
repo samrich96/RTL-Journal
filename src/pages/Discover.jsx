@@ -6,8 +6,15 @@ import BigCard from '../components/BigCard'
 import CategoryPills from '../components/CategoryPills'
 import Pagination from '../components/Pagination'
 import FilterSheet from '../components/FilterSheet'
+import DiscoverFilters from '../components/DiscoverFilters'
 import { useOpenItinerary } from '../hooks/useOpenItinerary'
 import { allItineraries, page2Itineraries, popularItineraries, categories, itineraryMatchesCategory } from '../data/itineraries'
+import {
+  EMPTY_DISCOVER_FILTERS,
+  getDiscoverFilterChips,
+  itineraryMatchesDiscoverFilters,
+  removeDiscoverFilterChip,
+} from '../data/discoverFilters'
 import { profileUser } from '../data/profile'
 import { paths } from '../routes/paths'
 import './Discover.css'
@@ -64,6 +71,8 @@ export default function Discover() {
   const [page, setPage] = useState(1)
   const [visibleCount, setVisibleCount] = useState(MOBILE_BATCH_SIZE)
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORY)
+  const [discoverFilters, setDiscoverFilters] = useState(EMPTY_DISCOVER_FILTERS)
+  const [discoverFiltersOpen, setDiscoverFiltersOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState(DEFAULT_POPULAR_FILTERS)
   const [draftFilters, setDraftFilters] = useState(DEFAULT_POPULAR_FILTERS)
@@ -87,10 +96,24 @@ export default function Discover() {
     const source = isDesktop
       ? [...pages[0], ...pages[1]]
       : mobileList
-    return source.filter((item) =>
-      itineraryMatchesCategory(item, categoryFilter),
+    return source.filter(
+      (item) =>
+        itineraryMatchesCategory(item, categoryFilter) &&
+        itineraryMatchesDiscoverFilters(item, {
+          ...discoverFilters,
+          budget: ALL_CATEGORY,
+        }),
     )
-  }, [isDesktop, pages, mobileList, categoryFilter])
+  }, [isDesktop, pages, mobileList, categoryFilter, discoverFilters])
+
+  const activeFilterChips = useMemo(
+    () =>
+      getDiscoverFilterChips({
+        ...discoverFilters,
+        budget: categoryFilter,
+      }),
+    [discoverFilters, categoryFilter],
+  )
 
   const popularVisible = popularItineraries.filter(
     (trip) => filters[trip.filter],
@@ -111,7 +134,7 @@ export default function Discover() {
   useEffect(() => {
     setPage(1)
     setVisibleCount(MOBILE_BATCH_SIZE)
-  }, [categoryFilter])
+  }, [categoryFilter, discoverFilters])
 
   useEffect(() => {
     if (page > desktopPageCount) setPage(desktopPageCount)
@@ -155,6 +178,26 @@ export default function Discover() {
 
   function onCategoryChange(category) {
     setCategoryFilter(category)
+    setDiscoverFilters((current) => ({ ...current, budget: category }))
+  }
+
+  function openDiscoverFilters() {
+    setDiscoverFiltersOpen(true)
+  }
+
+  function applyDiscoverFilters(next) {
+    setDiscoverFilters(next)
+    setCategoryFilter(next.budget || ALL_CATEGORY)
+    setDiscoverFiltersOpen(false)
+  }
+
+  function removeDiscoverChip(chip) {
+    const next = removeDiscoverFilterChip(
+      { ...discoverFilters, budget: categoryFilter },
+      chip,
+    )
+    setDiscoverFilters(next)
+    setCategoryFilter(next.budget || ALL_CATEGORY)
   }
 
   if (isPopularAll) {
@@ -280,6 +323,9 @@ export default function Discover() {
           <CategoryPills
             active={categoryFilter}
             onChange={onCategoryChange}
+            onOpenFilters={openDiscoverFilters}
+            activeChips={activeFilterChips}
+            onRemoveChip={removeDiscoverChip}
             resultCount={filteredFeed.length}
           />
 
@@ -308,7 +354,7 @@ export default function Discover() {
               </div>
             ) : (
               <p className="infinite-feed__status">
-                No itineraries in this price range yet
+                No itineraries match these filters
               </p>
             )}
 
@@ -336,6 +382,13 @@ export default function Discover() {
           </section>
         </main>
       </div>
+
+      <DiscoverFilters
+        open={discoverFiltersOpen}
+        value={{ ...discoverFilters, budget: categoryFilter }}
+        onClose={() => setDiscoverFiltersOpen(false)}
+        onApply={applyDiscoverFilters}
+      />
     </div>
   )
 }
