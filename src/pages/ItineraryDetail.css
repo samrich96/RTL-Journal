@@ -1606,10 +1606,9 @@
   flex-direction: column;
   background: linear-gradient(
     180deg,
-    rgb(235, 249, 255) 0%,
-    #fff 17%,
-    #fff 81%,
-    rgb(235, 249, 255) 100%
+    rgb(255, 237, 230) 0%,
+    #fff 14%,
+    #faf8f6 100%
   );
 }
 
